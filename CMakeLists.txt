@@ -4,14 +4,19 @@ project(libImGui)
 
 add_library(${PROJECT_NAME} INTERFACE)
 
+set(LIBIMGUI_PLATFORM_LIBRARY "SDL2" CACHE STRING "Platform Library to link")
+set_property(CACHE LIBIMGUI_PLATFORM_LIBRARY PROPERTY STRINGS SDL2 glfw) # TODO: more...
+
 set(imgui_dir "${PROJECT_SOURCE_DIR}/external/imgui")
 set(sources
   imgui.cpp
   imgui_demo.cpp imgui_draw.cpp imgui_widgets.cpp
   misc/cpp/imgui_stdlib.cpp
-  examples/imgui_impl_glfw.cpp
+
+  # TODO: make graphics library configurable too
   examples/imgui_impl_opengl3.cpp
 )
+
 set(headers
   imconfig.h imgui.h imgui_internal.h
   imstb_rectpack.h imstb_textedit.h imstb_truetype.h
@@ -19,6 +24,15 @@ set(headers
   examples/imgui_impl_glfw.h
   examples/imgui_impl_opengl3.h
 )
+
+# Add the source/header files supporting the chosen platform library
+if (LIBIMGUI_PLATFORM_LIBRARY STREQUAL "SDL2")
+  list(APPEND sources examples/imgui_impl_sdl.cpp)
+  list(APPEND headers examples/imgui_impl_sdl.h)
+elseif(LIBIMGUI_PLATFORM_LIBRARY STREQUAL "glfw")
+  list(APPEND sources examples/imgui_impl_glfw.cpp)
+  list(APPEND headers examples/imgui_impl_glfw.h)
+endif()
 
 set(sources_args)
 foreach(src ${sources})
