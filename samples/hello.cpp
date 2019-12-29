@@ -61,6 +61,7 @@ int main(int, char**)
 #endif
 
     // Create window with graphics context
+    glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
     if (window == NULL)
         return 1;
@@ -89,6 +90,7 @@ int main(int, char**)
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.FontGlobalScale = 1.5f; // = ImVec2(1.5f, 1.5f);
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
