@@ -27,12 +27,22 @@ set(headers
 
 # Add the source/header files supporting the chosen platform library
 if (LIBIMGUI_PLATFORM_LIBRARY STREQUAL "SDL2")
+  target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_SDL2)
+  find_package(SDL2 REQUIRED)
+  target_link_libraries(${PROJECT_NAME} INTERFACE SDL2::SDL2 SDL2::SDL2main)
   list(APPEND sources examples/imgui_impl_sdl.cpp)
   list(APPEND headers examples/imgui_impl_sdl.h)
 elseif(LIBIMGUI_PLATFORM_LIBRARY STREQUAL "glfw")
+  # TODO: target_link_libraries
   list(APPEND sources examples/imgui_impl_glfw.cpp)
   list(APPEND headers examples/imgui_impl_glfw.h)
 endif()
+
+# TODO: make this configurable too:
+target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_OPENGL3)
+find_package(GLEW REQUIRED)
+target_link_libraries(${PROJECT_NAME} INTERFACE GLEW::GLEW)
+target_compile_definitions(${PROJECT_NAME} INTERFACE IMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 set(sources_args)
 foreach(src ${sources})
@@ -58,5 +68,7 @@ target_compile_definitions(${PROJECT_NAME} INTERFACE GLFW_EXPOSE_NATIVE_WGL)
 # TODO: support FreeType via misc/freetype
 
 # TODO: support ImVector in the MSVC debugger via misc/natvis
+
+add_subdirectory(libs/app)
 
 add_subdirectory(samples)
