@@ -5,7 +5,7 @@ project(libImGui)
 add_library(${PROJECT_NAME} INTERFACE)
 
 set(LIBIMGUI_PLATFORM_LIBRARY "SDL2" CACHE STRING "Platform Library to link")
-set_property(CACHE LIBIMGUI_PLATFORM_LIBRARY PROPERTY STRINGS SDL2 glfw) # TODO: more...
+set_property(CACHE LIBIMGUI_PLATFORM_LIBRARY PROPERTY STRINGS SDL2 glfw3) # TODO: more...
 
 set(imgui_dir "${PROJECT_SOURCE_DIR}/external/imgui")
 
@@ -32,7 +32,7 @@ if (LIBIMGUI_PLATFORM_LIBRARY STREQUAL "SDL2")
   target_link_libraries(${PROJECT_NAME} INTERFACE SDL2::SDL2 SDL2::SDL2main)
   list(APPEND sources examples/imgui_impl_sdl.cpp)
   list(APPEND headers examples/imgui_impl_sdl.h)
-elseif(LIBIMGUI_PLATFORM_LIBRARY STREQUAL "glfw")
+elseif(LIBIMGUI_PLATFORM_LIBRARY STREQUAL "glfw3")
   target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_GLFW3)
   target_compile_definitions(${PROJECT_NAME} INTERFACE GLFW_INCLUDE_NONE)
   find_package(glfw3 REQUIRED)
