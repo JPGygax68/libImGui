@@ -8,6 +8,7 @@ set(LIBIMGUI_PLATFORM_LIBRARY "SDL2" CACHE STRING "Platform Library to link")
 set_property(CACHE LIBIMGUI_PLATFORM_LIBRARY PROPERTY STRINGS SDL2 glfw) # TODO: more...
 
 set(imgui_dir "${PROJECT_SOURCE_DIR}/external/imgui")
+
 set(sources
   imgui.cpp
   imgui_demo.cpp imgui_draw.cpp imgui_widgets.cpp
@@ -16,7 +17,6 @@ set(sources
   # TODO: make graphics library configurable too
   examples/imgui_impl_opengl3.cpp
 )
-
 set(headers
   imconfig.h imgui.h imgui_internal.h
   imstb_rectpack.h imstb_textedit.h imstb_truetype.h
@@ -33,7 +33,10 @@ if (LIBIMGUI_PLATFORM_LIBRARY STREQUAL "SDL2")
   list(APPEND sources examples/imgui_impl_sdl.cpp)
   list(APPEND headers examples/imgui_impl_sdl.h)
 elseif(LIBIMGUI_PLATFORM_LIBRARY STREQUAL "glfw")
-  # TODO: target_link_libraries
+  target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_GLFW3)
+  target_compile_definitions(${PROJECT_NAME} INTERFACE GLFW_INCLUDE_NONE)
+  find_package(glfw3 REQUIRED)
+  target_link_libraries(${PROJECT_NAME} INTERFACE glfw)
   list(APPEND sources examples/imgui_impl_glfw.cpp)
   list(APPEND headers examples/imgui_impl_glfw.h)
 endif()

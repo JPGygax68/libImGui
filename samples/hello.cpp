@@ -1,7 +1,4 @@
-// dear imgui: standalone example application for SDL2 + OpenGL
-// If you are new to dear imgui, see examples/README.txt and documentation at the top of imgui.cpp.
-// (SDL is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan graphics context creation, etc.)
-// (GL3W is a helper library to access OpenGL functions since there is no standard header to access modern OpenGL functions easily. Alternatives are GLEW, Glad, etc.)
+// SAMPLE CODE, directly derived from one of the Dear ImGui samples.
 
 #include <imgui/App.h>
 
@@ -18,11 +15,7 @@ int main(int, char **)
 
     app.openDefaultWindow("libImGuiApp sample").onRender([&]() {
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
-
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+        // Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         {
             static float f = 0.0f;
             static int counter = 0;
@@ -48,7 +41,7 @@ int main(int, char **)
             ImGui::End();
         }
 
-        // 3. Show another simple window.
+        // Show another simple window.
         if (show_another_window)
         {
             ImGui::Begin("Another Window", &show_another_window); // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
@@ -57,10 +50,14 @@ int main(int, char **)
                 show_another_window = false;
             ImGui::End();
         }
+
+        // Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+        if (show_demo_window)
+            ImGui::ShowDemoWindow(&show_demo_window);
+
     });
 
-    // Main loop
-    while (app.pumpEvents());
+    app.run();
 
     return 0;
 }

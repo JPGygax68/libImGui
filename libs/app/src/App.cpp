@@ -6,6 +6,9 @@
 #ifdef LIBIMGUI_SDL2
 #include <SDL2/SDL.h>
 #include "imgui_impl_sdl.h"
+#elif LIBIMGUI_GLFW3
+#include <GLFW/glfw3.h>
+#include "imgui_impl_glfw.h"
 #endif
 #ifdef LIBIMGUI_OPENGL3
 #include "imgui_impl_opengl3.h"
@@ -25,11 +28,20 @@
 #include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif
 
+
 const char *App::glsl_version = nullptr;
 
 void App::init()
 {
     static bool init_done = false;
+
+#if __APPLE__
+    // GL 3.2 Core + GLSL 150
+    glsl_version = "#version 150";
+#else
+    // GL 3.0 + GLSL 130
+    glsl_version = "#version 130";
+#endif
 
     if (!init_done) {
 #ifdef LIBIMGUI_SDL2
@@ -41,43 +53,68 @@ void App::init()
             printf("Error: %s\n", SDL_GetError());
             exit(-1);
         }
-
         // Decide GL+GLSL versions
 #if __APPLE__
-    // GL 3.2 Core + GLSL 150
-        glsl_version = "#version 150";
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 #else
-    // GL 3.0 + GLSL 130
-        glsl_version = "#version 130";
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #endif
+#elif LIBIMGUI_GLFW3
+        // Setup window
+        glfwSetErrorCallback([](int error, const char *description) { fprintf(stderr, "Error %d: %s\n", error, description); });
+        if (!glfwInit()) exit(1);
 
+        // Decide GL+GLSL versions
+#if __APPLE__
+        // GL 3.2 + GLSL 150
+        const char* glsl_version = "#version 150";
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+#else
+        // GL 3.0 + GLSL 130
+        const char* glsl_version = "#version 130";
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+        //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+        //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
+#endif
+#else
+#error libImGuiApp: no platform library selected!
+#endif
 
         atexit([]() {
             // Cleanup
             ImGui_ImplOpenGL3_Shutdown();
+#ifdef LIBIMGUI_SDL2
             ImGui_ImplSDL2_Shutdown();
-            ImGui::DestroyContext();
-    });
-}
-#else
-#error libImGuiApp: no platform library selected!
+#elif LIBIMGUI_GLFW
+            ImGui_ImplGlfw_Shutdown();
 #endif
+            ImGui::DestroyContext();
+        });
+
+    } // if !init_done
 }
 
     App::~App()
     {
         // TODO: move to closeDefaultWindow()?
+#ifdef LIBIMGUI_SDL2
         SDL_GL_DeleteContext(gl_context);
         SDL_DestroyWindow((SDL_Window*)window);
         SDL_Quit();
+#elif LIBIMGUI_GLFW3
+        glfwDestroyWindow((GLFWwindow*)window);
+        glfwTerminate();
+#endif
     }
 
 auto App::openDefaultWindow(const char* title) -> App&
@@ -98,7 +135,6 @@ auto App::openDefaultWindow(const char* title) -> App&
         exit(1);
     }
     int win_w = display_bounds.w * 7 / 8, win_h = display_bounds.h * 7 / 8;
-
     // Create window with graphics context
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -108,6 +144,20 @@ auto App::openDefaultWindow(const char* title) -> App&
     gl_context = SDL_GL_CreateContext((SDL_Window*)window);
     SDL_GL_MakeCurrent((SDL_Window*)window, gl_context);
     SDL_GL_SetSwapInterval(1); // Enable vsync
+#elif LIBIMGUI_GLFW3
+    auto monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    int monitor_width, monitor_height;
+    glfwGetMonitorPhysicalSize(glfwGetPrimaryMonitor(), &monitor_width, &monitor_height);
+    float hdpi = (float)mode->width  / ((float)monitor_width  / 25.4f);
+    float vdpi = (float)mode->height / ((float)monitor_height / 25.4f);
+    int win_w = mode->width * 7 / 8, win_h = mode->height * 7 / 8;
+    float dpi_scaling = hdpi / 72.f;
+    window = glfwCreateWindow(win_w, win_h, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+    if (window == NULL)
+        exit(1);
+    glfwMakeContextCurrent((GLFWwindow*)window);
+    glfwSwapInterval(1); // Enable vsync
 #else
 #error libImGuiApp: no platform library selected!
 #endif
@@ -128,12 +178,6 @@ auto App::openDefaultWindow(const char* title) -> App&
         exit(1);
     }
 
-    {
-        int w, h;
-        SDL_GL_GetDrawableSize((SDL_Window*)window, &w, &h);
-        printf("Drawable size is %d x %d\n", w, h);
-    }
-
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -149,7 +193,11 @@ auto App::openDefaultWindow(const char* title) -> App&
     //ImGui::StyleColorsClassic();
 
     // Setup Platform/Renderer bindings
+#if LIBIMGUI_SDL2
     ImGui_ImplSDL2_InitForOpenGL((SDL_Window*)window, gl_context);
+#elif LIBIMGUI_GLFW3
+    ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)window, true);
+#endif
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Load Fonts
@@ -170,6 +218,13 @@ auto App::openDefaultWindow(const char* title) -> App&
     return *this; // for "chaining"
 }
 
+void App::run()
+{
+    while (pumpEvents()) {
+        updateAllWindows();
+    }
+}
+
 bool App::pumpEvents()
 {
     // Poll and handle events (inputs, window resize, etc.)
@@ -177,6 +232,8 @@ bool App::pumpEvents()
     // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
     // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
     // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+
+#if LIBIMGUI_SDL2
     SDL_Event event;
     bool done = false;
     while (SDL_PollEvent(&event))
@@ -187,10 +244,12 @@ bool App::pumpEvents()
         if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID((SDL_Window*)window))
             done = true;
     }
-
-    updateAllWindows();
-
     return !done;
+#elif LIBIMGUI_GLFW3
+    if (glfwWindowShouldClose((GLFWwindow*)window)) return false;
+    glfwPollEvents();
+    return true;
+#endif
 }
 
 void App::updateAllWindows()
@@ -201,7 +260,11 @@ void App::updateAllWindows()
 
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
+#if LIBIMGUI_SDL2
     ImGui_ImplSDL2_NewFrame((SDL_Window*)window);
+#elif LIBIMGUI_GLFW3
+    ImGui_ImplGlfw_NewFrame();
+#endif
     ImGui::NewFrame();
 
     on_render();
@@ -212,7 +275,13 @@ void App::updateAllWindows()
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    // Present
+#if LIBIMGUI_SDL2
     SDL_GL_SwapWindow((SDL_Window*)window);
+#elif LIBIMGUI_GLFW3
+    glfwSwapBuffers((GLFWwindow*)window);
+#endif
 }
 
 auto App::onRender(RenderFunc func) -> App&

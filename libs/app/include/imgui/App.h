@@ -16,6 +16,8 @@ public:
 
     auto openDefaultWindow(const char *title = "Dear ImGui SDL2+OpenGL3 example") -> App&;
 
+    void run();
+
     /* Returns true as long as the application is running, false if it is terminating. */
     bool pumpEvents(); 
 
