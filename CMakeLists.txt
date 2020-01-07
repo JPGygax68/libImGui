@@ -78,11 +78,21 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 target_compile_definitions(${PROJECT_NAME} INTERFACE GLFW_EXPOSE_NATIVE_WGL)
 
+# Installation
+
 install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
   PUBLIC_HEADER DESTINATION "include/imgui" # TODO correct ?
 )
 
+cmake_policy(SET CMP0022 NEW)
+install(EXPORT ${PROJECT_NAME}
+  DESTINATION "cmake"
+  EXPORT_LINK_INTERFACE_LIBRARIES
+)
+
 install(FILES ${sources_fp} ${headers_fp} DESTINATION "src/${PROJECT_NAME}/")
+
+# Alias for build tree consumption
 
 add_library(ImGui::Lib ALIAS ${PROJECT_NAME})
 
@@ -95,11 +105,3 @@ add_library(ImGui::Lib ALIAS ${PROJECT_NAME})
 add_subdirectory(libs/app)
 
 add_subdirectory(samples)
-
-cmake_policy(SET CMP0022 NEW)
-install(EXPORT ${PROJECT_NAME}
-  DESTINATION "cmake"
-  FILE "${PROJECT_NAME}.cmake"
-  EXPORT_LINK_INTERFACE_LIBRARIES
-)
-
