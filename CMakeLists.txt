@@ -57,13 +57,16 @@ target_link_libraries(${PROJECT_NAME} INTERFACE GLEW::GLEW)
 target_compile_definitions(${PROJECT_NAME} INTERFACE IMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 set(sources_args)
+set(sources_fp)
 foreach(src ${sources})
   list(APPEND sources_args $<BUILD_INTERFACE:${imgui_dir}/${src}> $<INSTALL_INTERFACE:src/${src}>)
+  list(APPEND sources_fp ${imgui_dir}/${src})
 endforeach()
 
 set(headers_args)
 foreach(hdr ${headers})
   list(APPEND headers_args $<BUILD_INTERFACE:${imgui_dir}/${hdr}> $<INSTALL_INTERFACE:include/${hdr}>)
+  list(APPEND headers_fp ${imgui_dir}/${hdr})
 endforeach()
 #message("sources: ${sources_args}")
 #message("headers: ${headers_args}")
@@ -74,6 +77,12 @@ target_include_directories(${PROJECT_NAME} INTERFACE
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/imgui/examples> $<INSTALL_INTERFACE:include/examples>
 )
 target_compile_definitions(${PROJECT_NAME} INTERFACE GLFW_EXPOSE_NATIVE_WGL)
+
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}
+  PUBLIC_HEADER DESTINATION "include/imgui" # TODO correct ?
+)
+
+install(FILES ${sources_fp} ${headers_fp} DESTINATION "src/${PROJECT_NAME}/")
 
 add_library(ImGui::Lib ALIAS ${PROJECT_NAME})
 
@@ -86,3 +95,11 @@ add_library(ImGui::Lib ALIAS ${PROJECT_NAME})
 add_subdirectory(libs/app)
 
 add_subdirectory(samples)
+
+cmake_policy(SET CMP0022 NEW)
+install(EXPORT ${PROJECT_NAME}
+  DESTINATION "cmake"
+  FILE "${PROJECT_NAME}.cmake"
+  EXPORT_LINK_INTERFACE_LIBRARIES
+)
+
