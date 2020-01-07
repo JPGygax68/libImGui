@@ -4,7 +4,7 @@ project(libImGui)
 
 add_library(${PROJECT_NAME} INTERFACE)
 
-set(LIBIMGUI_PLATFORM_LIBRARY "SDL2" CACHE STRING "Platform Library to link")
+set(LIBIMGUI_PLATFORM_LIBRARY ${LIBIMGUI_PLATFORM_LIBRARY} CACHE STRING "Platform Library to link")
 set_property(CACHE LIBIMGUI_PLATFORM_LIBRARY PROPERTY STRINGS SDL2 glfw3) # TODO: more...
 
 set(imgui_dir "${PROJECT_SOURCE_DIR}/external/imgui")
@@ -27,18 +27,27 @@ set(headers
 
 # Add the source/header files supporting the chosen platform library
 if (LIBIMGUI_PLATFORM_LIBRARY STREQUAL "SDL2")
-  target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_SDL2)
-  find_package(SDL2 REQUIRED)
-  target_link_libraries(${PROJECT_NAME} INTERFACE SDL2::SDL2 SDL2::SDL2main)
+  target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_PLATFORM_SDL2)
+  # TODO: better way to handle targets with and without namespace?
+  if (TARGET SDL2)
+    message("using SDL2")
+    target_link_libraries(${PROJECT_NAME} INTERFACE SDL2 SDL2main)
+  else()
+    find_package(SDL2 REQUIRED)
+    target_link_libraries(${PROJECT_NAME} INTERFACE SDL2::SDL2 SDL2::SDL2main)
+  endif()
   list(APPEND sources examples/imgui_impl_sdl.cpp)
   list(APPEND headers examples/imgui_impl_sdl.h)
 elseif(LIBIMGUI_PLATFORM_LIBRARY STREQUAL "glfw3")
-  target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_GLFW3)
+  target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_PLATFORM_GLFW3)
   target_compile_definitions(${PROJECT_NAME} INTERFACE GLFW_INCLUDE_NONE)
   find_package(glfw3 REQUIRED)
   target_link_libraries(${PROJECT_NAME} INTERFACE glfw)
   list(APPEND sources examples/imgui_impl_glfw.cpp)
   list(APPEND headers examples/imgui_impl_glfw.h)
+else()
+  target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_PLATFORM_CUSTOM)
+  message(STATUS "libImGui: custom platform selected -> user code must provide glue code")
 endif()
 
 # TODO: make this configurable too:
@@ -65,6 +74,8 @@ target_include_directories(${PROJECT_NAME} INTERFACE
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/imgui/examples> $<INSTALL_INTERFACE:include/examples>
 )
 target_compile_definitions(${PROJECT_NAME} INTERFACE GLFW_EXPOSE_NATIVE_WGL)
+
+add_library(ImGui::Lib ALIAS ${PROJECT_NAME})
 
 # TODO: support embedding fonts from misc/fonts using misc/binary_to_compressed_c.cpp
 

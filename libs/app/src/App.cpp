@@ -2,6 +2,7 @@
 #include <cassert>
 
 #include <imgui/App.h>
+#include <imgui/app/glue.h>
 
 #ifdef LIBIMGUI_OPENGL3
 #include "imgui_impl_opengl3.h"
@@ -21,10 +22,7 @@
 #include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif
 
-#include "glue.h"
-
-
-const char *App::glsl_version = nullptr;
+const char *App::glsl_version = "#version 150"; // default
 
 void App::init()
 {
@@ -38,10 +36,13 @@ void App::init()
     glsl_version = "#version 130";
 #endif
 
-    if (!init_done) {
-        app_init();
-#ifdef LIBIMGUI_SDL2
-#elif LIBIMGUI_GLFW3
+    if (!init_done)
+    {
+        imgapp_init();
+#ifdef LIBIMGUI_PLATFORM_SDL2
+#elif LIBIMGUI_PLATFORM_GLFW3
+#elif LIBIMGUI_PLATFORM_CUSTOM
+        // user code must provide libImGui glue code
 #else
 #error libImGuiApp: no platform library selected!
 #endif
@@ -49,27 +50,27 @@ void App::init()
         atexit([]() {
             // Cleanup
             ImGui_ImplOpenGL3_Shutdown();
-            app_shutdown();
+            imgapp_shutdown();
             ImGui::DestroyContext();
         });
 
     } // if !init_done
 }
 
-    App::~App()
-    {
-        // TODO: move to closeDefaultWindow()?
-        app_destroyWindow(window, gl_context);
-    }
-
-auto App::openDefaultWindow(const char* title) -> App&
+App::~App()
 {
-    float dpi = app_getMainMonitorDPI();
-    auto [display_width, display_height] = app_getMainDisplayExtents();
+    // TODO: move to closeDefaultWindow()?
+    imgapp_destroyWindow(window, gl_context);
+}
+
+auto App::openDefaultWindow(const char *title) -> App &
+{
+    float dpi = imgapp_getMainMonitorDPI();
+    auto [display_width, display_height] = imgapp_getMainDisplayExtents();
     float dpi_scaling = dpi / 72.f; // >= 120 ? 1.5f : 1.0f;
     int win_w = display_width * 7 / 8, win_h = display_height * 7 / 8;
 
-    auto [win, gl_ctx] = app_openWindow(title, win_w, win_h);
+    auto [win, gl_ctx] = imgapp_openWindow(title, win_w, win_h);
     window = win;
     gl_context = gl_ctx;
 
@@ -104,7 +105,7 @@ auto App::openDefaultWindow(const char* title) -> App&
     //ImGui::StyleColorsClassic();
 
     // Setup Platform/Renderer bindings
-    app_initWindowForOpenGL(window, gl_context);
+    imgapp_initWindowForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Load Fonts
@@ -127,7 +128,8 @@ auto App::openDefaultWindow(const char* title) -> App&
 
 void App::run()
 {
-    while (pumpEvents()) {
+    while (pumpEvents())
+    {
         updateAllWindows();
     }
 }
@@ -140,7 +142,7 @@ bool App::pumpEvents()
     // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
     // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 
-    return app_pumpEvents(window);
+    return imgapp_pumpEvents();
 }
 
 void App::updateAllWindows()
@@ -148,26 +150,26 @@ void App::updateAllWindows()
     // TODO: So far, there is only the Main window:
 
     // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    app_newFrame(window);
-    ImGui::NewFrame();
+    // ImGui_ImplOpenGL3_NewFrame();
+    imgapp_newFrame(window);
+    // ImGui::NewFrame();
 
     on_render();
 
     // Rendering
     ImGui::Render();
 
-    auto& io = ImGui::GetIO();
+    auto &io = ImGui::GetIO();
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     // Present
-    app_presentFrame(window);
+    imgapp_presentFrame(window);
 }
 
-auto App::onRender(RenderFunc func) -> App&
+auto App::onRender(RenderFunc func) -> App &
 {
     assert(!on_render);
 
