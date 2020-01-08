@@ -14,7 +14,7 @@ public:
 
     virtual ~App();
 
-    auto openDefaultWindow(const char *title = "Dear ImGui SDL2+OpenGL3 example") -> App&;
+    auto openDefaultWindow(const char *title = "libImGui default window") -> App&;
 
     void run();
 
