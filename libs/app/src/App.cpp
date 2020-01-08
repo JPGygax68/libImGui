@@ -65,6 +65,8 @@ App::~App()
 
 auto App::openDefaultWindow(const char *title) -> App &
 {
+    init();
+
     float dpi = imgapp_getMainMonitorDPI();
     auto [display_width, display_height] = imgapp_getMainDisplayExtents();
     float dpi_scaling = dpi / 72.f; // >= 120 ? 1.5f : 1.0f;
@@ -128,6 +130,8 @@ auto App::openDefaultWindow(const char *title) -> App &
 
 void App::run()
 {
+    assert(window != nullptr);
+
     while (pumpEvents())
     {
         updateAllWindows();
