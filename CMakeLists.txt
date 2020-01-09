@@ -2,10 +2,16 @@ cmake_minimum_required(VERSION 3.14)
 
 project(libImGui)
 
-add_library(${PROJECT_NAME} INTERFACE)
+# Option: Platform Library
 
 set(LIBIMGUI_PLATFORM_LIBRARY ${LIBIMGUI_PLATFORM_LIBRARY} CACHE STRING "Platform Library to link")
-set_property(CACHE LIBIMGUI_PLATFORM_LIBRARY PROPERTY STRINGS SDL2 glfw3) # TODO: more...
+set_property(CACHE LIBIMGUI_PLATFORM_LIBRARY PROPERTY STRINGS SDL2 glfw3 Custom) # TODO: more...
+
+# Define Library target
+
+add_library(${PROJECT_NAME} INTERFACE)
+
+# Add sources and headers from Dear ImGUI (injected into libImGui as a git submodule)
 
 set(imgui_dir "${PROJECT_SOURCE_DIR}/external/imgui")
 
@@ -25,7 +31,8 @@ set(headers
   examples/imgui_impl_opengl3.h
 )
 
-# Add the source/header files supporting the chosen platform library
+# Dear ImGui sources and headers specific to the selected platform library
+
 if (LIBIMGUI_PLATFORM_LIBRARY STREQUAL "SDL2")
   target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_PLATFORM_SDL2)
   # TODO: better way to handle targets with and without namespace?
@@ -47,14 +54,8 @@ elseif(LIBIMGUI_PLATFORM_LIBRARY STREQUAL "glfw3")
   list(APPEND headers examples/imgui_impl_glfw.h)
 else()
   target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_PLATFORM_CUSTOM)
-  message(STATUS "libImGui: custom platform selected -> user code must provide glue code")
+  message(STATUS "libImGui: \"Custom\" platform selected -> user code must provide glue code!")
 endif()
-
-# TODO: make this configurable too:
-target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_OPENGL3)
-find_package(GLEW REQUIRED)
-target_link_libraries(${PROJECT_NAME} INTERFACE GLEW::GLEW)
-target_compile_definitions(${PROJECT_NAME} INTERFACE IMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 set(sources_args)
 set(sources_fp)
@@ -68,15 +69,24 @@ foreach(hdr ${headers})
   list(APPEND headers_args $<BUILD_INTERFACE:${imgui_dir}/${hdr}> $<INSTALL_INTERFACE:include/${hdr}>)
   list(APPEND headers_fp ${imgui_dir}/${hdr})
 endforeach()
-#message("sources: ${sources_args}")
-#message("headers: ${headers_args}")
 
 target_sources(${PROJECT_NAME} INTERFACE ${sources_args} ${headers_args})
 target_include_directories(${PROJECT_NAME} INTERFACE
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/imgui> $<INSTALL_INTERFACE:include>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/imgui/examples> $<INSTALL_INTERFACE:include/examples>
 )
-target_compile_definitions(${PROJECT_NAME} INTERFACE GLFW_EXPOSE_NATIVE_WGL)
+if (LIBIMGUI_PLATFORM_LIBRARY STREQUAL "glfw3")
+  target_compile_definitions(${PROJECT_NAME} INTERFACE GLFW_EXPOSE_NATIVE_WGL)
+endif()
+
+# OpenGL bindings
+# TODO: there should be options for this too: 1) choose between OpenGL2,3, and Vulkan (possibly event DirectX);
+# 2) for OpenGL (and Vulkan?), select a binding library
+
+target_compile_definitions(${PROJECT_NAME} INTERFACE LIBIMGUI_OPENGL3)
+find_package(GLEW REQUIRED)
+target_link_libraries(${PROJECT_NAME} INTERFACE GLEW::GLEW)
+target_compile_definitions(${PROJECT_NAME} INTERFACE IMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 # Installation
 
@@ -101,6 +111,8 @@ add_library(ImGui::Lib ALIAS ${PROJECT_NAME})
 # TODO: support FreeType via misc/freetype
 
 # TODO: support ImVector in the MSVC debugger via misc/natvis
+
+# Components
 
 add_subdirectory(libs/app)
 
