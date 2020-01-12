@@ -5,7 +5,7 @@
 
 #include "glue.h"
 
-void imgapp_init()
+void imgapp_initPlatform()
 {
     // Setup window
     glfwSetErrorCallback([](int error, const char *description) { fprintf(stderr, "Error %d: %s\n", error, description); });

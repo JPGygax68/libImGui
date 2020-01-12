@@ -2,24 +2,10 @@
 #include <cassert>
 
 #include <imgui/App.h>
-#include <imgui/app/glue.h>
+#include <imgui/app_glue.h>
 
 #ifdef LIBIMGUI_OPENGL3
 #include "imgui_impl_opengl3.h"
-#endif
-
-// About Desktop OpenGL function loaders:
-//  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
-//  Helper libraries are often used for this purpose! Here we are supporting a few common ones (gl3w, glew, glad).
-//  You may use another loader/header of your choice (glext, glLoadGen, etc.), or chose to manually implement your own.
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-#include <GL/gl3w.h> // Initialize with gl3wInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-#include <GL/glew.h> // Initialize with glewInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-#include <glad/glad.h> // Initialize with gladLoadGL()
-#else
-#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #endif
 
 const char *App::glsl_version = "#version 150"; // default
@@ -38,19 +24,10 @@ void App::init()
 
     if (!init_done)
     {
-        imgapp_init();
-#ifdef LIBIMGUI_PLATFORM_SDL2
-#elif LIBIMGUI_PLATFORM_GLFW3
-#elif LIBIMGUI_PLATFORM_CUSTOM
-        // user code must provide libImGui glue code
-#else
-#error libImGuiApp: no platform library selected!
-#endif
-
         atexit([]() {
             // Cleanup
-            ImGui_ImplOpenGL3_Shutdown();
-            imgapp_shutdown();
+            imgapp_deinitGraphicLibrary();
+            imgapp_deinitPlatform();
             ImGui::DestroyContext();
         });
 
@@ -106,10 +83,6 @@ auto App::openDefaultWindow(const char *title) -> App &
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();
 
-    // Setup Platform/Renderer bindings
-    imgapp_initWindowForOpenGL(window, gl_context);
-    ImGui_ImplOpenGL3_Init(glsl_version);
-
     // Load Fonts
     // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
     // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
@@ -156,18 +129,18 @@ void App::updateAllWindows()
     // Start the Dear ImGui frame
     // ImGui_ImplOpenGL3_NewFrame();
     imgapp_newFrame(window);
-    // ImGui::NewFrame();
+    ImGui::NewFrame();
 
     on_render();
+
+    ImGui::EndFrame();
 
     // Rendering
     ImGui::Render();
 
     auto &io = ImGui::GetIO();
-    glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-    glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    imgapp_clearFrame(clear_color);
+    imgapp_renderGui();
 
     // Present
     imgapp_presentFrame(window);

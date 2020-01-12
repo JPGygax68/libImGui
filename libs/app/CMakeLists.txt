@@ -1,54 +1,28 @@
-project (libImGuiApp)
+project (libImGui_App)
 
 # Application framework built on top of libImGUI (itself a packaging of Dear ImGui)
 
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(libImGui_App STATIC src/App.cpp include/imgui/App.h include/imgui/app_glue.h)
+target_compile_features(libImGui_App PRIVATE cxx_std_17)
+target_include_directories(libImGui_App PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
+# TODO: install
+# TODO: install public headers
+target_link_libraries(libImGui_App PUBLIC libImGui_Core)
 
-target_link_libraries(${PROJECT_NAME} INTERFACE libImGui)
+install(TARGETS libImGui_App EXPORT libImGui_AppTargets)
+install(EXPORT libImGui_AppTargets DESTINATION "cmake")
 
-if (LIBIMGUI_PLATFORM_LIBRARY STREQUAL "SDL2")
-  set(glue_sources "src/glue_sdl2.cpp")
-elseif (LIBIMGUI_PLATFORM_LIBRARY STREQUAL "glfw3")
-  set(glue_sources "src/glue_glfw3.cpp")
-elseif (LIBIMGUI_PLATFORM_LIBRARY STREQUAL "Custom")
-  # Nothing to do here
-else()
-  message(FATAL_ERROR "No platform library selected")
-endif()
+# Adapters for platform/graphic library
 
-#set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17) # not allowed on interface libraries? why?
+add_library(libImGui_App_SDL_OpenGL3 STATIC src/sdl_opengl.cpp)
+# TODO: macro definition to select OpenGL 3 ?
+target_link_libraries(libImGui_App_SDL_OpenGL3 PRIVATE libImGui_SDL libImGui_OpenGL3)
+# TODO: install
 
-target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
+# TODO: more combinations
 
-set(sources App.cpp)
-set(headers)
-set(public_headers App.h app/glue.h)
+# Installation
 
-set(sources_args)
-set(sources_fp)
-foreach(src ${sources} ${headers})
-  set(source_fp "${PROJECT_SOURCE_DIR}/src/${src}")
-  list(APPEND sources_fp ${source_fp})
-  list(APPEND sources_args $<BUILD_INTERFACE:${source_fp}> $<INSTALL_INTERFACE:src/imgui/${src}>)
-endforeach()
-foreach(phdr ${public_headers})
-  list(APPEND sources_args $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/imgui/${phdr}> $<INSTALL_INTERFACE:include/imgui/${phdr}>)
-endforeach()
+install(TARGETS libImGui_App_SDL_OpenGL3 EXPORT libImGui_App_AdapterTargets)
 
-target_sources(${PROJECT_NAME} INTERFACE ${sources_args})
-
-target_include_directories(${PROJECT_NAME} INTERFACE
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
-)
-
-install(TARGETS ${PROJECT_NAME} EXPORT libImGui
-  PUBLIC_HEADER DESTINATION "include/imgui" # TODO probably doing nothing
-)
-
-install(FILES ${sources_fp} DESTINATION "src/${PROJECT_NAME}/")
-
-
-# Alias target for convention
-add_library(ImGui::App ALIAS ${PROJECT_NAME})
-
-# TODO: installation
+install(EXPORT libImGui_App_AdapterTargets DESTINATION "cmake")
