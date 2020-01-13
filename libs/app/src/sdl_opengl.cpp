@@ -1,5 +1,8 @@
 #include <SDL2/SDL.h>
-#include "app_glue.h"
+#include <imgui.h>
+#include <examples/imgui_impl_opengl3.h>
+#include <examples/imgui_impl_sdl.h>
+#include <imgui/app_glue.h>
 
 auto imgapp_openWindow(const char *title, int win_w, int win_h) -> WindowHandle
 {
@@ -14,7 +17,7 @@ auto imgapp_openWindow(const char *title, int win_w, int win_h) -> WindowHandle
     SDL_GL_SetSwapInterval(1); // Enable vsync
 
     // Setup Platform/Renderer bindings
-    ImGui_ImplOpenGL3_Init(glsl_version);
+    ImGui_ImplOpenGL3_Init("#version 150"); // TODO: make version configurable (as in Dear ImGui example)
 
     return {window, gl_context};
 }

@@ -19,127 +19,76 @@ add_library(libImGui_Core STATIC
 )
 
 target_include_directories(libImGui_Core PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
+#target_include_directories(libImGui_Core PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
 
-install(
-  TARGETS libImGui_Core
-  EXPORT libImGui_CoreTargets
-)
+install(TARGETS libImGui_Core EXPORT libImGui_Core)
+install(EXPORT libImGui_Core DESTINATION "cmake")
 
-install(EXPORT libImGui_CoreTargets DESTINATION "cmake")
+# Dependencies helper function
+
+function(add_dependencies_from_package target package dependencies)
+  foreach(dep_tgt ${dependencies})
+    if (NOT TARGET ${dep_tgt})
+      find_package(${package} REQUIRED)
+    endif()
+    target_link_libraries(${target} PRIVATE ${dep_tgt})
+  endforeach()
+endfunction()
 
 # Platform glue libs
 
-# include_directories($<BUILD_INTERFACE:${root}/examples> $<INSTALL_INTERFACE:include>) # Another shortcut to specifying target include directories
+# TODO: for dependencies, use libman package and library identifiers instead of CMake packages & targets
+function(add_platform platform shortform default_enabled source_ext dep_pkg dep_targets)
+  option(PLATFORM_LIBRARY_${platform} "Build module for platform ${platform}" ${default_enabled})
+  if (${PLATFORM_LIBRARY_${platform}})
+    set(target libImGui_${platform})
+    add_library(${target} STATIC
+      ${root}/examples/imgui_impl_${shortform}.${source_ext}
+      ${root}/examples/imgui_impl_${shortform}.h
+    )
+    target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
+    add_dependencies_from_package(${target} "${dep_pkg}" "${dep_targets}")
+    install(TARGETS ${target} EXPORT ${target})
+    install(EXPORT ${target} DESTINATION "cmake")
+  endif()
+endfunction()
 
-# TODO: Detect which of them can be supported
-# TODO: installation
-# TODO: macro?
-
-add_library(libImGui_Win32 STATIC
-  ${root}/examples/imgui_impl_win32.cpp
-  ${root}/examples/imgui_impl_win32.h
-)
-target_include_directories(libImGui_Win32 PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
-
-add_library(libImGui_OSX STATIC
-  ${root}/examples/imgui_impl_osx.mm
-  ${root}/examples/imgui_impl_osx.h
-)
-target_include_directories(libImGui_OSX PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
-
-add_library(libImGui_GLFW STATIC
-  ${root}/examples/imgui_impl_glfw.cpp
-  ${root}/examples/imgui_impl_glfw.h
-)
-target_include_directories(libImGui_GLFW PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
-target_compile_definitions(libImGui_GLFW INTERFACE GLFW_EXPOSE_NATIVE_WGL)
-
-add_library(libImGui_Marmalade STATIC
-  ${root}/examples/imgui_impl_marmalade.cpp
-  ${root}/examples/imgui_impl_marmalade.h
-)
-target_include_directories(libImGui_Marmalade PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
-
-add_library(libImGui_SDL STATIC
-  ${root}/examples/imgui_impl_sdl.cpp
-  ${root}/examples/imgui_impl_sdl.h
-)
-target_include_directories(libImGui_SDL PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
-
-add_library(libImGui_Allegro5 STATIC
-  ${root}/examples/imgui_impl_allegro5.cpp
-  ${root}/examples/imgui_impl_allegro5.h
-)
-target_include_directories(libImGui_Allegro5 PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
-
-install(
-  TARGETS libImGui_SDL libImGui_Win32 libImGui_OSX libImGui_GLFW libImGui_Marmalade libImGui_Allegro5
-  EXPORT libImGui_PlatformTargets
-)
-
-install(EXPORT libImGui_PlatformTargets DESTINATION "cmake")
+add_platform(Win32     win32     "${WIN32}" "cpp" "" "") # TODO: deps
+add_platform(OSX       osx       "${APPLE}" "mm"  "" "") # TODO: deps
+add_platform(glfw      glfw      FALSE      "cpp" "" "") # TODO: deps
+add_platform(Marmalade marmalade FALSE      "cpp" "" "") # TODO: deps
+add_platform(SDL       sdl       FALSE      "cpp" "SDL2" "SDL2::SDL2")
+add_platform(Allegro5  allegro5  FALSE      "cpp" "" "") # TODO: deps
 
 # Graphics glue libs
 
-set(includes PRIVATE ${root} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/examples> $<INSTALL_INTERFACE:include>)
+# TODO: for dependencies, use libman package and library identifiers instead of CMake packages & targets
+function(add_graphiclib graphiclib shortform default_enabled source_ext dep_pkg dep_targets)
+  option(GRAPHICS_${graphiclib} "Build module for graphic library ${graphiclib}" ${default_enabled})
+  if (${GRAPHICS_${graphiclib}})
+    set(target libImGui_${graphiclib})
+    add_library(${target} STATIC
+      ${root}/examples/imgui_impl_${shortform}.${source_ext}
+      ${root}/examples/imgui_impl_${shortform}.h
+    )
+    target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
+    add_dependencies_from_package(${target} "${dep_pkg}" "${dep_targets}")
+    install(TARGETS ${target} EXPORT ${target})
+    install(EXPORT ${target} DESTINATION "cmake")
+  endif()
+endfunction()
 
-add_library(libImGui_OpenGL2 STATIC
-  ${root}/examples/imgui_impl_opengl2.cpp
-  ${root}/examples/imgui_impl_opengl2.h
-)
-target_include_directories(libImGui_OpenGL2 ${includes})
+add_graphiclib(OpenGL2   opengl2 TRUE       "cpp" "" "") # TODO: OpenGL bindings
+add_graphiclib(OpenGL3   opengl3 TRUE       "cpp" "" "") # TODO: OpenGL bindings
+add_graphiclib(Vulkan    vulkan  FALSE      "cpp" "" "") # TODO: autodetect presence
+add_graphiclib(Metal     metal   FALSE      "mm"  "" "")
+add_graphiclib(DirectX9  dx9     "${WIN32}" "cpp" "" "")
+add_graphiclib(DirectX10 dx10    "${WIN32}" "cpp" "" "")
+add_graphiclib(DirectX11 dx11    "${WIN32}" "cpp" "" "")
+add_graphiclib(DirectX12 dx12    "${WIN32}" "cpp" "" "")
 
-add_library(libImGui_OpenGL3 STATIC
-  ${root}/examples/imgui_impl_opengl3.cpp
-  ${root}/examples/imgui_impl_opengl3.h
-)
-target_include_directories(libImGui_OpenGL3 ${includes})
-
-add_library(libImGui_Vulkan STATIC
-  ${root}/examples/imgui_impl_vulkan.cpp
-  ${root}/examples/imgui_impl_vulkan.h
-)
-target_include_directories(libImGui_Vulkan ${includes})
-
-add_library(libImGui_Metal STATIC
-  ${root}/examples/imgui_impl_metal.mm
-  ${root}/examples/imgui_impl_metal.h
-)
-target_include_directories(libImGui_Metal ${includes})
-
-add_library(libImGui_DirectX9 STATIC
-  ${root}/examples/imgui_impl_dx9.cpp
-  ${root}/examples/imgui_impl_dx9.h
-)
-target_include_directories(libImGui_DirectX9  ${includes})
-
-add_library(libImGui_DirectX10 STATIC
-  ${root}/examples/imgui_impl_dx10.cpp
-  ${root}/examples/imgui_impl_dx10.h
-)
-target_include_directories(libImGui_DirectX10 ${includes})
-
-add_library(libImGui_DirectX11 STATIC
-  ${root}/examples/imgui_impl_dx11.cpp
-  ${root}/examples/imgui_impl_dx11.h
-)
-target_include_directories(libImGui_DirectX11 ${includes})
-
-add_library(libImGui_DirectX12 STATIC
-  ${root}/examples/imgui_impl_dx12.cpp
-  ${root}/examples/imgui_impl_dx12.h
-)
-target_include_directories(libImGui_DirectX12 ${includes})
-
-install(
-  TARGETS
-    libImGui_OpenGL2 libImGui_OpenGL3 libImGui_Vulkan
-    libImGui_DirectX9 libImGui_DirectX10 libImGui_DirectX11 libImGui_DirectX12
-    libImGui_Metal
-  EXPORT libImGui_GLTargets
-)
-
-install(EXPORT libImGui_GLTargets DESTINATION "cmake")
+#set(includes PRIVATE ${root} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/examples> $<INSTALL_INTERFACE:include>)
+#target_include_directories(libImGui_Vulkan ${includes})
 
 # App component
 
