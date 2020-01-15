@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <chrono>
 #include <cassert>
 
 #include <imgui/App.h>
@@ -7,6 +8,17 @@
 #ifdef LIBIMGUI_OPENGL3
 #include "imgui_impl_opengl3.h"
 #endif
+
+// PRIVATE TYPES
+
+using myclock_t = std::chrono::high_resolution_clock;
+using timepoint_t = std::chrono::time_point<myclock_t>;
+
+// PRIVATE VARIABLES
+
+static auto last_time = timepoint_t();
+
+// App class implementation
 
 const char *App::glsl_version = "#version 150"; // default
 
@@ -54,6 +66,7 @@ auto App::openDefaultWindow(const char *title) -> App &
     gl_context = gl_ctx;
 
     // Initialize OpenGL loader
+    // TODO: this does not belong here - it could be Vulkan, Direct X, or something else other than OpenGL
 #if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
     bool err = gl3wInit() != 0;
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
@@ -124,7 +137,15 @@ bool App::pumpEvents()
 
 void App::updateAllWindows()
 {
+    using namespace std::chrono;
+
     // TODO: So far, there is only the Main window:
+
+    // Compute delta t (future extension)
+    // auto now = myclock_t::now();
+    // auto &io = ImGui::GetIO();
+    // io.DeltaTime = now == last_time ? 1.f / 60.f : duration<float>(now - last_time).count();
+    // last_time = now;
 
     // Start the Dear ImGui frame
     // ImGui_ImplOpenGL3_NewFrame();
@@ -133,12 +154,11 @@ void App::updateAllWindows()
 
     on_render();
 
-    ImGui::EndFrame();
+    ImGui::EndFrame(); // not strictly necessary: ImGui::Render() does it automatically
 
     // Rendering
     ImGui::Render();
 
-    auto &io = ImGui::GetIO();
     imgapp_clearFrame(clear_color);
     imgapp_renderGui();
 

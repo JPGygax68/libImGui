@@ -19,13 +19,9 @@ install(EXPORT libImGui_App DESTINATION "cmake")
 
 add_library(libImGui_App_SDL_OpenGL3 STATIC src/sdl_opengl.cpp)
 # TODO: macro definition to select OpenGL 3 ?
-target_link_libraries(libImGui_App_SDL_OpenGL3 PRIVATE libImGui_App libImGui_SDL libImGui_OpenGL3)
-# TODO: install
+target_link_libraries(libImGui_App_SDL_OpenGL3 PRIVATE libImGui_Glue libImGui_App libImGui_SDL libImGui_OpenGL3)
+install(TARGETS libImGui_App_SDL_OpenGL3 EXPORT libImGui_App_SDL_OpenGL3)
+install(EXPORT libImGui_App_SDL_OpenGL3 DESTINATION "cmake")
 
 # TODO: more combinations
 
-# Installation
-
-install(TARGETS libImGui_App_SDL_OpenGL3 EXPORT libImGui_App_AdapterTargets)
-
-install(EXPORT libImGui_App_AdapterTargets DESTINATION "cmake")

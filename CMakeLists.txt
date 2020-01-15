@@ -24,6 +24,15 @@ target_include_directories(libImGui_Core PUBLIC $<BUILD_INTERFACE:${PROJECT_SOUR
 install(TARGETS libImGui_Core EXPORT libImGui_Core)
 install(EXPORT libImGui_Core DESTINATION "cmake")
 
+# Glue code headers (header-only library)
+# Only required if consumer needs to provide its own patform or graphic lib glue code
+
+add_library(libImGui_Glue INTERFACE)
+target_include_directories(libImGui_Glue INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/examples> $<INSTALL_INTERFACE:include>)
+
+install(TARGETS libImGui_Glue EXPORT libImGui_Glue)
+install(EXPORT libImGui_Glue DESTINATION "cmake")
+
 # Dependencies helper function
 
 function(add_dependencies_from_package target package dependencies)

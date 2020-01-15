@@ -18,6 +18,10 @@ struct WindowHandle
     void *gl_context;
 };
 
+// TODO: replace this collection of function declarations with an abstract base class,
+// and use the "final" keyword on implementations to enable to the devirtualization
+// optimization.
+
 // Platform
 
 void imgapp_initPlatform();
@@ -35,7 +39,7 @@ auto imgapp_getMainDisplayExtents() -> Extents;
 bool imgapp_pumpEvents();
 
 void imgapp_newFrame(void *window);
-void imgapp_clearFrame(const ImVec4& color);
+void imgapp_clearFrame(const ImVec4 &color);
 void imgapp_renderGui();
 void imgapp_presentFrame(void *window);
 
