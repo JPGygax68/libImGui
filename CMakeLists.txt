@@ -19,10 +19,10 @@ add_library(libImGui_Core STATIC
 )
 
 target_include_directories(libImGui_Core PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
-#target_include_directories(libImGui_Core PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
 
-install(TARGETS libImGui_Core EXPORT libImGui_Core)
-install(EXPORT libImGui_Core DESTINATION "cmake")
+add_library(libImGui::Core ALIAS libImGui_Core)
+
+install(TARGETS libImGui_Core COMPONENT Core EXPORT libImGui)
 
 # Glue code headers (header-only library)
 # Only required if consumer needs to provide its own patform or graphic lib glue code
@@ -30,8 +30,11 @@ install(EXPORT libImGui_Core DESTINATION "cmake")
 add_library(libImGui_Glue INTERFACE)
 target_include_directories(libImGui_Glue INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/examples> $<INSTALL_INTERFACE:include>)
 
-install(TARGETS libImGui_Glue EXPORT libImGui_Glue)
-install(EXPORT libImGui_Glue DESTINATION "cmake")
+add_library(libImGui::Glue ALIAS libImGui_Glue)
+
+install(TARGETS libImGui_Glue COMPONENT Glue EXPORT libImGui)
+
+install(EXPORT libImGui NAMESPACE libImGui:: COMPONENT Core DESTINATION "cmake")
 
 # Dependencies helper function
 
@@ -55,10 +58,10 @@ function(add_platform platform shortform default_enabled source_ext dep_pkg dep_
       ${root}/examples/imgui_impl_${shortform}.${source_ext}
       ${root}/examples/imgui_impl_${shortform}.h
     )
+    set_target_properties(${target} PROPERTIES EXPORT_NAME ${platform})
     target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
     add_dependencies_from_package(${target} "${dep_pkg}" "${dep_targets}")
-    install(TARGETS ${target} EXPORT ${target})
-    install(EXPORT ${target} DESTINATION "cmake")
+    install(TARGETS ${target} EXPORT libImGui_Platforms)
   endif()
 endfunction()
 
@@ -68,6 +71,8 @@ add_platform(glfw      glfw      FALSE      "cpp" "" "") # TODO: deps
 add_platform(Marmalade marmalade FALSE      "cpp" "" "") # TODO: deps
 add_platform(SDL       sdl       FALSE      "cpp" "SDL2" "SDL2::SDL2")
 add_platform(Allegro5  allegro5  FALSE      "cpp" "" "") # TODO: deps
+
+install(EXPORT libImGui_Platforms NAMESPACE libImGui:: COMPONENT "Platforms" DESTINATION "cmake")
 
 # Graphics glue libs
 
@@ -80,10 +85,10 @@ function(add_graphiclib graphiclib shortform default_enabled source_ext dep_pkg 
       ${root}/examples/imgui_impl_${shortform}.${source_ext}
       ${root}/examples/imgui_impl_${shortform}.h
     )
+    set_target_properties(${target} PROPERTIES EXPORT_NAME ${graphiclib})
     target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
     add_dependencies_from_package(${target} "${dep_pkg}" "${dep_targets}")
-    install(TARGETS ${target} EXPORT ${target})
-    install(EXPORT ${target} DESTINATION "cmake")
+    install(TARGETS ${target} EXPORT libImGui_GraphicLibs)
   endif()
 endfunction()
 
@@ -94,7 +99,12 @@ add_graphiclib(Metal     metal   FALSE      "mm"  "" "")
 add_graphiclib(DirectX9  dx9     "${WIN32}" "cpp" "" "")
 add_graphiclib(DirectX10 dx10    "${WIN32}" "cpp" "" "")
 add_graphiclib(DirectX11 dx11    "${WIN32}" "cpp" "" "")
-add_graphiclib(DirectX12 dx12    "${WIN32}" "cpp" "" "")
+
+if (${WIN32} AND (CMAKE_SIZEOF_VOID_P EQUAL 8))
+  add_graphiclib(DirectX12 dx12 "${dx12}" "cpp" "" "")
+endif()
+
+install(EXPORT libImGui_GraphicLibs NAMESPACE libImGui:: COMPONENT "GraphicLibs" DESTINATION "cmake")
 
 #set(includes PRIVATE ${root} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/examples> $<INSTALL_INTERFACE:include>)
 #target_include_directories(libImGui_Vulkan ${includes})
@@ -102,3 +112,7 @@ add_graphiclib(DirectX12 dx12    "${WIN32}" "cpp" "" "")
 # App component
 
 add_subdirectory(libs/app)
+
+# Samples
+
+add_subdirectory(samples)

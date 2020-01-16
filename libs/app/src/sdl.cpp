@@ -3,7 +3,7 @@
 #include <imgui.h>
 #include "imgui_impl_sdl.h"
 
-#include "glue.h"
+#include <imgui/app_glue.h>
 
 void imgapp_initPlatform()
 {
@@ -70,7 +70,7 @@ void imgapp_initWindowForOpenGL(void *window, void *gl_context)
     ImGui_ImplSDL2_InitForOpenGL((SDL_Window *)window, gl_context);
 }
 
-bool imgapp_pumpEvents(void *window)
+bool imgapp_pumpEvents()
 {
     SDL_Event event;
     bool done = false;
@@ -79,15 +79,11 @@ bool imgapp_pumpEvents(void *window)
         ImGui_ImplSDL2_ProcessEvent(&event);
         if (event.type == SDL_QUIT)
             done = true;
-        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID((SDL_Window *)window))
-            done = true;
+        // TODO: keep a list of windows?
+        // if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID((SDL_Window *)window))
+        //    done = true;
     }
     return !done;
-}
-
-void imgapp_newFrame(void *window)
-{
-    ImGui_ImplSDL2_NewFrame((SDL_Window *)window);
 }
 
 void imgapp_presentFrame(void *window)

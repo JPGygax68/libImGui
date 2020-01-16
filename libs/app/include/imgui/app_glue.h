@@ -27,6 +27,9 @@ struct WindowHandle
 void imgapp_initPlatform();
 void imgapp_deinitPlatform();
 
+// TODO: some graphic libraries may need global initialization, some per-window.
+//   => extend the interface to support both
+
 void imgapp_initGraphicLibrary(const char *version);
 void imgapp_deinitGraphicLibrary();
 
