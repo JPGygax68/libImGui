@@ -1,4 +1,4 @@
-// SAMPLE CODE, directly derived from one of the Dear ImGui samples.
+// SAMPLE CODE, derived from one of the Dear ImGui samples.
 
 #include <imgui/App.h>
 
