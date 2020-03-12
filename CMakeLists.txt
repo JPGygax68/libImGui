@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.16)
 
 project(libImGui)
 
@@ -8,7 +8,9 @@ project(libImGui)
 
 set(root external/imgui)
 
-add_library(libImGui_Core STATIC
+# "Core" library: consists of the Dear ImGui code itself
+
+add_library(Core STATIC
   ${root}/imgui.cpp
   ${root}/imgui_draw.cpp ${root}/imgui_widgets.cpp
   ${root}/imgui.h ${root}/imconfig.h ${root}/imgui_internal.h
@@ -18,23 +20,34 @@ add_library(libImGui_Core STATIC
   ${root}/imgui_demo.cpp
 )
 
-target_include_directories(libImGui_Core PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
+target_include_directories(Core PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
 
-add_library(libImGui::Core ALIAS libImGui_Core)
+add_library(libImGui::Core ALIAS Core)
 
-install(TARGETS libImGui_Core COMPONENT Core EXPORT libImGui)
+install(TARGETS Core EXPORT libImGui_Core COMPONENT Core)
+install(EXPORT libImGui_Core NAMESPACE libImGui:: COMPONENT Core DESTINATION "cmake" FILE "libImGui_Core-targets.cmake")
 
-# Glue code headers (header-only library)
-# Only required if consumer needs to provide its own patform or graphic lib glue code
+# "Glue" code headers (header-only library)
 
-add_library(libImGui_Glue INTERFACE)
-target_include_directories(libImGui_Glue INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/examples> $<INSTALL_INTERFACE:include>)
+# Only required if consumer needs to provide its own platform and/or graphic lib glue code
+# Note: this target does not add any dependencies (such as SDL, OpenGL etc.); consumers must obtain those themselves
 
-add_library(libImGui::Glue ALIAS libImGui_Glue)
+add_library(Glue INTERFACE)
+target_include_directories(Glue INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/examples> $<INSTALL_INTERFACE:include>)
 
-install(TARGETS libImGui_Glue COMPONENT Glue EXPORT libImGui)
+add_library(libImGui::Glue ALIAS Glue)
 
-install(EXPORT libImGui NAMESPACE libImGui:: COMPONENT Core DESTINATION "cmake")
+install(TARGETS Glue EXPORT libImGui_Glue COMPONENT Glue)
+install(EXPORT libImGui_Glue NAMESPACE libImGui:: DESTINATION "cmake" FILE "libImGui_Glue-targets.cmake")
+
+# Create and install a CMake config file that imports both the Core and the Glue targets
+install(CODE [[
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/libImGui-config.cmake
+    "include(\${CMAKE_CURRENT_LIST_DIR}/libImGui_Core-targets.cmake)\n"
+    "include(\${CMAKE_CURRENT_LIST_DIR}/libImGui_Glue-targets.cmake)\n"
+  )
+]])
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libImGui-config.cmake" DESTINATION "cmake/")
 
 # Dependencies helper function
 
@@ -72,6 +85,9 @@ add_platform(Marmalade marmalade FALSE      "cpp" "" "") # TODO: deps
 add_platform(SDL       sdl       FALSE      "cpp" "SDL2" "SDL2::SDL2")
 add_platform(Allegro5  allegro5  FALSE      "cpp" "" "") # TODO: deps
 
+# TODO: this is stupid: the config file (which is not being created yet anyway) would have to satisfy the
+# dependencies of *all* the platforms in order to be successfully imported - unacceptable.
+# Each platform must therefore be given its own config file (TBD in the add_platform() function above).
 install(EXPORT libImGui_Platforms NAMESPACE libImGui:: COMPONENT "Platforms" DESTINATION "cmake")
 
 # Graphics glue libs
@@ -115,4 +131,4 @@ add_subdirectory(libs/app)
 
 # Samples
 
-add_subdirectory(samples)
+add_subdirectory(samples EXCLUDE_FROM_ALL)
