@@ -22,9 +22,14 @@ add_library(Core STATIC
 
 target_include_directories(Core PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
 
+# Make the Dear ImGui headers available using #include <imgui/imgui.h> etc.
+set_target_properties(Core PROPERTIES PUBLIC_HEADER "${root}/imgui.h;${root}/imstb_rectpack.h;${root}/imstb_textedit.h;${root}/imstb_truetype.h")
+
 add_library(libImGui::Core ALIAS Core)
 
+# Install library file, headers, and cmake targets file
 install(TARGETS Core EXPORT libImGui_Core COMPONENT Core)
+install(TARGETS Core PUBLIC_HEADER DESTINATION "include/imgui/")
 install(EXPORT libImGui_Core NAMESPACE libImGui:: COMPONENT Core DESTINATION "cmake" FILE "libImGui_Core-targets.cmake")
 
 # "Glue" code headers (header-only library)
