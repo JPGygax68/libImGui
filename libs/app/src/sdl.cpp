@@ -1,7 +1,7 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <imgui.h>
-#include "imgui_impl_sdl.h"
+#include <examples/imgui_impl_sdl.h>
 
 #include <imgui/app_glue.h>
 
