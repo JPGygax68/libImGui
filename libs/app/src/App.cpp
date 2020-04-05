@@ -1,3 +1,8 @@
+#ifdef WIN32
+#define WINDOWS_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#endif
 #include <stdio.h>
 #include <chrono>
 #include <cassert>
@@ -33,6 +38,10 @@ void App::init()
 
     if (!init_done)
     {
+#ifdef WIN32
+        SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+#endif
+
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
