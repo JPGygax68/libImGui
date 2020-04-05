@@ -54,11 +54,12 @@ function(add_component comp_type comp shortform default_enabled source_ext dep_p
     )
     set_target_properties(${target} PROPERTIES PUBLIC_HEADER "${root}/examples/imgui_impl_${shortform}.h")
     set_target_properties(${target} PROPERTIES EXPORT_NAME ${comp})
-    target_include_directories(${target} PUBLIC 
+    target_include_directories(${target} PUBLIC
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/> $<INSTALL_INTERFACE:include/imgui>
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/examples> $<INSTALL_INTERFACE:include/imgui/examples/>
     )
     add_dependencies_from_package(${target} "${dep_pkg}" "${dep_targets}")
+    add_library(libImGui::${comp} ALIAS libImGui_${comp})
     #install(TARGETS ${target} PUBLIC_HEADER DESTINATION "include/imgui/examples/")
     install(TARGETS ${target} EXPORT ${target} PUBLIC_HEADER DESTINATION "include/imgui/examples/")
     install(EXPORT ${target} NAMESPACE libImGui:: DESTINATION "cmake" FILE "libImGui_${comp}-targets.cmake")
