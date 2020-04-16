@@ -10,7 +10,7 @@ set(root external/imgui)
 
 # "Core" library: consists of the Dear ImGui code itself
 
-add_library(Core STATIC
+add_library(libImGui_Core STATIC
   ${root}/imgui.cpp
   ${root}/imgui_draw.cpp ${root}/imgui_widgets.cpp
   ${root}/imgui.h ${root}/imconfig.h ${root}/imgui_internal.h
@@ -20,15 +20,19 @@ add_library(Core STATIC
   ${root}/imgui_demo.cpp
 )
 
-target_include_directories(Core PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
+target_include_directories(libImGui_Core
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external> $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/imgui>
+    $<INSTALL_INTERFACE:include>
+)
 
 # Make the Dear ImGui headers available using #include <imgui/imgui.h> etc.
-set_target_properties(Core PROPERTIES PUBLIC_HEADER "${root}/imgui.h;${root}/imconfig.h;${root}/imstb_rectpack.h;${root}/imstb_textedit.h;${root}/imstb_truetype.h")
+set_target_properties(libImGui_Core PROPERTIES PUBLIC_HEADER "${root}/imgui.h;${root}/imconfig.h;${root}/imstb_rectpack.h;${root}/imstb_textedit.h;${root}/imstb_truetype.h")
 
-add_library(libImGui::Core ALIAS Core)
+add_library(libImGui::Core ALIAS libImGui_Core)
 
 # Install library file, headers, and cmake targets file
-install(TARGETS Core EXPORT libImGui_Core COMPONENT Core PUBLIC_HEADER DESTINATION "include/imgui/")
+install(TARGETS libImGui_Core EXPORT libImGui_Core COMPONENT Core PUBLIC_HEADER DESTINATION "include/imgui/")
 #install(TARGETS Core PUBLIC_HEADER DESTINATION "include/imgui/")
 install(EXPORT libImGui_Core NAMESPACE libImGui:: COMPONENT Core DESTINATION "cmake" FILE "libImGui_Core-targets.cmake")
 
