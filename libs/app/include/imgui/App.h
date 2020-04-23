@@ -10,9 +10,11 @@ public:
 
     using RenderFunc = std::function<void()>;
 
-    static void init();
-
     virtual ~App();
+
+    void init();
+
+    auto addFont(const char *filename, float size) -> ImFont*;
 
     auto openDefaultWindow(const char *title = "libImGui default window") -> App&;
 
@@ -28,8 +30,15 @@ public:
     const auto& clearColor() const { return clear_color; }
     void clearColor(const ImVec4& color) { clear_color = color; }
 
+    // Queries
+
+    auto dpiScaling() const { return dpi_scaling; }
+
 private:
-    static const char *glsl_version;
+
+    const char *glsl_version = "#version 150"; // default
+
+    float dpi_scaling = 1.0f;
 
     ImVec4 clear_color = ImVec4{ 0.45f, 0.55f, 0.60f, 1.00f };
 
