@@ -61,6 +61,8 @@ void App::init()
         // TODO: support per-monitor DPI scaling?
         float dpi = imgapp_getMainMonitorDPI();
         dpi_scaling = dpi / 72.f; // >= 120 ? 1.5f : 1.0f;
+ 
+        ImGui::GetStyle().ScaleAllSizes(dpi_scaling);
 
         // Load Fonts
         // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
