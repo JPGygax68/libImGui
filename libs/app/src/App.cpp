@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <chrono>
 #include <cassert>
+#include <filesystem>
 
 #include <imgui/App.h>
 #include <imgui/app_glue.h>
@@ -20,9 +21,8 @@ using timepoint_t = std::chrono::time_point<myclock_t>;
 
 static auto last_time = timepoint_t();
 
-// App class implementation
 
-const char *App::glsl_version = "#version 150"; // default
+// App class implementation
 
 void App::init()
 {
@@ -60,7 +60,9 @@ void App::init()
 
         // TODO: support per-monitor DPI scaling?
         float dpi = imgapp_getMainMonitorDPI();
-        float dpi_scaling = dpi / 72.f; // >= 120 ? 1.5f : 1.0f;
+        dpi_scaling = dpi / 72.f; // >= 120 ? 1.5f : 1.0f;
+
+        ImGui::GetStyle().ScaleAllSizes(dpi_scaling);
 
         // Load Fonts
         // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -74,7 +76,7 @@ void App::init()
         //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
         //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
         //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
-        ImFont *font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\Arial.ttf", dpi_scaling * 14.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+        ImFont *font = addFont("Arial.ttf", 14.0f);
         //IM_ASSERT(font != NULL);
 
         // imgapp_initGraphicLibrary(glsl_version); // TODO: idiotic - only OpenGL has a GLSL version. Do better.
@@ -89,6 +91,22 @@ void App::init()
         init_done = true;
 
     } // if !init_done
+}
+
+auto App::addFont(const char* filename, float size) -> ImFont*
+{
+#ifdef WIN32
+    static const char *FONT_DIRECTORY = "c:\\Windows\\Fonts";
+#else
+#error PLATFORM NOT SUPPORTED YET
+#endif
+
+    auto path = std::filesystem::path(filename);
+    if (path.is_relative()) path = std::filesystem::path(FONT_DIRECTORY) / path;
+
+    auto& io = ImGui::GetIO();
+
+    return io.Fonts->AddFontFromFileTTF(path.string().c_str(), round(dpiScaling() * size), NULL, nullptr /*io.Fonts->GetGlyphRangesJapanese()*/);
 }
 
 App::~App()
