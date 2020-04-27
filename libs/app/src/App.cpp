@@ -61,7 +61,7 @@ void App::init()
         // TODO: support per-monitor DPI scaling?
         float dpi = imgapp_getMainMonitorDPI();
         dpi_scaling = dpi / 72.f; // >= 120 ? 1.5f : 1.0f;
- 
+
         ImGui::GetStyle().ScaleAllSizes(dpi_scaling);
 
         // Load Fonts
@@ -106,7 +106,7 @@ auto App::addFont(const char* filename, float size) -> ImFont*
 
     auto& io = ImGui::GetIO();
 
-    return io.Fonts->AddFontFromFileTTF(path.string().c_str(), dpiScaling() * size, NULL, nullptr /*io.Fonts->GetGlyphRangesJapanese()*/);
+    return io.Fonts->AddFontFromFileTTF(path.string().c_str(), round(dpiScaling() * size), NULL, nullptr /*io.Fonts->GetGlyphRangesJapanese()*/);
 }
 
 App::~App()
