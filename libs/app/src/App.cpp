@@ -93,7 +93,8 @@ void App::init()
     } // if !init_done
 }
 
-auto App::addFont(const char* filename, float size) -> ImFont*
+auto App::addFont(const char* filename, float size, const ImFontConfig* font_cfg_template,
+    const ImWchar* glyph_ranges) -> ImFont*
 {
 #ifdef WIN32
     static const char *FONT_DIRECTORY = "c:\\Windows\\Fonts";
@@ -106,7 +107,7 @@ auto App::addFont(const char* filename, float size) -> ImFont*
 
     auto& io = ImGui::GetIO();
 
-    return io.Fonts->AddFontFromFileTTF(path.string().c_str(), round(dpiScaling() * size), NULL, nullptr /*io.Fonts->GetGlyphRangesJapanese()*/);
+    return io.Fonts->AddFontFromFileTTF(path.string().c_str(), round(dpiScaling() * size), font_cfg_template, glyph_ranges);
 }
 
 App::~App()

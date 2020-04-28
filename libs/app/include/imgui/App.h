@@ -14,7 +14,8 @@ public:
 
     void init();
 
-    auto addFont(const char *filename, float size) -> ImFont*;
+    auto addFont(const char *filename, float size, const ImFontConfig* font_cfg_template = nullptr, 
+        const ImWchar* glyph_ranges = nullptr) -> ImFont*;
 
     auto openDefaultWindow(const char *title = "libImGui default window") -> App&;
 
