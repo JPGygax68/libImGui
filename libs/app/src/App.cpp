@@ -179,6 +179,8 @@ void App::updateAllWindows()
     imgapp_clearFrame(clear_color);
     imgapp_renderGui();
 
+    after_render();
+
     // Present
     imgapp_presentFrame(window);
 }
@@ -188,6 +190,15 @@ auto App::onRender(RenderFunc func) -> App &
     assert(!on_render);
 
     on_render = func;
+
+    return *this;
+}
+
+auto App::afterRender(AfterRenderFunc func) -> App&
+{
+    assert(!after_render);
+
+    after_render = func;
 
     return *this;
 }

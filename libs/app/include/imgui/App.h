@@ -9,6 +9,7 @@ class App
 public:
 
     using RenderFunc = std::function<void()>;
+    using AfterRenderFunc = std::function<void()>;
 
     virtual ~App();
 
@@ -27,6 +28,7 @@ public:
     void updateAllWindows();
 
     auto onRender(RenderFunc) -> App&;
+    auto afterRender(AfterRenderFunc) -> App&;
 
     const auto& clearColor() const { return clear_color; }
     void clearColor(const ImVec4& color) { clear_color = color; }
@@ -46,4 +48,5 @@ private:
     void *window = nullptr; // a void* should cover the needs of all platform libraries
     void * gl_context = nullptr;
     RenderFunc on_render;
+    AfterRenderFunc after_render;
 };
