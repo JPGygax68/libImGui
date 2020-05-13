@@ -33,7 +33,6 @@ add_library(libImGui::Core ALIAS libImGui_Core)
 
 # Install library file, headers, and cmake targets file
 install(TARGETS libImGui_Core EXPORT libImGui_Core COMPONENT Core PUBLIC_HEADER DESTINATION "include/imgui/")
-#install(TARGETS Core PUBLIC_HEADER DESTINATION "include/imgui/")
 install(EXPORT libImGui_Core NAMESPACE libImGui:: COMPONENT Core DESTINATION "cmake" FILE "libImGui_Core-targets.cmake")
 
 # Dependencies helper function (for platform and graphics libs)
@@ -107,6 +106,10 @@ add_graphiclib(DirectX11 dx11    "${WIN32}" "cpp" "" "")
 if (${WIN32} AND (CMAKE_SIZEOF_VOID_P EQUAL 8))
   add_graphiclib(DirectX12 dx12 "${dx12}" "cpp" "" "")
 endif()
+
+# Extra libraries
+
+add_subdirectory(libs/c++-latest)
 
 # App component
 
