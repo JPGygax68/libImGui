@@ -93,7 +93,8 @@ void App::init()
     } // if !init_done
 }
 
-auto App::addFont(const char* filename, float size) -> ImFont*
+auto App::addFont(const char* filename, float size, const ImFontConfig* font_cfg_template,
+    const ImWchar* glyph_ranges) -> ImFont*
 {
 #ifdef WIN32
     static const char *FONT_DIRECTORY = "c:\\Windows\\Fonts";
@@ -106,7 +107,7 @@ auto App::addFont(const char* filename, float size) -> ImFont*
 
     auto& io = ImGui::GetIO();
 
-    return io.Fonts->AddFontFromFileTTF(path.string().c_str(), round(dpiScaling() * size), NULL, nullptr /*io.Fonts->GetGlyphRangesJapanese()*/);
+    return io.Fonts->AddFontFromFileTTF(path.string().c_str(), round(dpiScaling() * size), font_cfg_template, glyph_ranges);
 }
 
 App::~App()
@@ -178,6 +179,8 @@ void App::updateAllWindows()
     imgapp_clearFrame(clear_color);
     imgapp_renderGui();
 
+    after_render();
+
     // Present
     imgapp_presentFrame(window);
 }
@@ -187,6 +190,15 @@ auto App::onRender(RenderFunc func) -> App &
     assert(!on_render);
 
     on_render = func;
+
+    return *this;
+}
+
+auto App::afterRender(AfterRenderFunc func) -> App&
+{
+    assert(!after_render);
+
+    after_render = func;
 
     return *this;
 }
