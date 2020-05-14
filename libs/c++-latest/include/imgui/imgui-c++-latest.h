@@ -4,6 +4,7 @@
 #include <functional>
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 
 
 /** The c++-latest module of libImGui is intended for wrappers and other conveniences that make
@@ -60,5 +61,19 @@ namespace ImGui {
     }
 
     // TODO: more overloads, and also for InputTextEx()
+
+    // TODO: move into separate "utils" module!
+
+    void BringItemIntoView() {
+        
+        ScrollToBringRectIntoView(GetCurrentWindow(), { GetItemRectMin(), GetItemRectMax() });
+    }
+
+    void ScrollHereUnlessVisible(float position = 0.5f) {
+
+        if (!ImGui::IsItemVisible()) {
+            ImGui::SetScrollHereY(position);
+        }
+    }
 
 } // ns ImGui
