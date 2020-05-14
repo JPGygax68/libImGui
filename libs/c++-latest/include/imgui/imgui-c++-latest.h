@@ -15,64 +15,50 @@
 
 namespace ImGui {
 
+    /** Namespace-based variant of ImGuiInputTextFlags 
+     */
     struct InputTextFlags {
 
-        int CharsDecimal : 1 = 0;
-        int CharsHexadecimal : 1 = 0;
-        int CharsUppercase : 1 = 0;
-        int CharsNoBlank : 1 = 0;
-        int AutoSelectAll : 1 = 0;
-        int EnterReturnsTrue : 1 = 0;
-        int CallbackCompletion : 1 = 0;
-        int CallbackHistory : 1 = 0;
-        int CallbackAlways : 1 = 0;
-        int CallbackCharFilter : 1 = 0;
-        int AllowTabInput : 1 = 0;
-        int CtrlEnterForNewLine : 1 = 0;
-        int NoHorizontalScroll : 1 = 0;
-        int AlwaysInsertMode : 1 = 0;
-        int ReadOnly : 1 = 0;
-        int Password : 1 = 0;
-        int NoUndoRedo : 1 = 0;
-        int CharsScientific : 1 = 0;
-        int CallbackResize : 1 = 0;
+        static const int CharsDecimal        = ImGuiInputTextFlags_CharsDecimal;
+        static const int CharsHexadecimal    = ImGuiInputTextFlags_CharsHexadecimal;
+        static const int CharsUppercase      = ImGuiInputTextFlags_CharsUppercase;
+        static const int CharsNoBlank        = ImGuiInputTextFlags_CharsNoBlank;
+        static const int AutoSelectAll       = ImGuiInputTextFlags_AutoSelectAll;
+        static const int EnterReturnsTrue    = ImGuiInputTextFlags_EnterReturnsTrue;
+        static const int CallbackCompletion  = ImGuiInputTextFlags_CallbackCompletion;
+        static const int CallbackHistory     = ImGuiInputTextFlags_CallbackHistory;
+        static const int CallbackAlways      = ImGuiInputTextFlags_CallbackAlways;
+        static const int CallbackCharFilter  = ImGuiInputTextFlags_CallbackCharFilter;
+        static const int AllowTabInput       = ImGuiInputTextFlags_AllowTabInput;
+        static const int CtrlEnterForNewLine = ImGuiInputTextFlags_CtrlEnterForNewLine;
+        static const int NoHorizontalScroll  = ImGuiInputTextFlags_NoHorizontalScroll;
+        static const int AlwaysInsertMode    = ImGuiInputTextFlags_AlwaysInsertMode;
+        static const int ReadOnly            = ImGuiInputTextFlags_ReadOnly;
+        static const int Password            = ImGuiInputTextFlags_Password;
+        static const int NoUndoRedo          = ImGuiInputTextFlags_NoUndoRedo;
+        static const int CharsScientific     = ImGuiInputTextFlags_CharsScientific;
+        static const int CallbackResize      = ImGuiInputTextFlags_CallbackResize;
 
-        operator ImGuiInputTextFlags() const {
+        ImGuiInputTextFlags flags;
 
-            ImGuiInputTextFlags value = 0;
-            if (CharsDecimal       ) value |= ImGuiInputTextFlags_CharsDecimal       ;
-            if (CharsHexadecimal   ) value |= ImGuiInputTextFlags_CharsHexadecimal   ;
-            if (CharsUppercase     ) value |= ImGuiInputTextFlags_CharsUppercase     ;
-            if (CharsNoBlank       ) value |= ImGuiInputTextFlags_CharsNoBlank       ;
-            if (AutoSelectAll      ) value |= ImGuiInputTextFlags_AutoSelectAll      ;
-            if (EnterReturnsTrue   ) value |= ImGuiInputTextFlags_EnterReturnsTrue   ;
-            if (CallbackCompletion ) value |= ImGuiInputTextFlags_CallbackCompletion ;
-            if (CallbackHistory    ) value |= ImGuiInputTextFlags_CallbackHistory    ;
-            if (CallbackAlways     ) value |= ImGuiInputTextFlags_CallbackAlways     ;
-            if (CallbackCharFilter ) value |= ImGuiInputTextFlags_CallbackCharFilter ;
-            if (AllowTabInput      ) value |= ImGuiInputTextFlags_AllowTabInput      ;
-            if (CtrlEnterForNewLine) value |= ImGuiInputTextFlags_CtrlEnterForNewLine;
-            if (NoHorizontalScroll ) value |= ImGuiInputTextFlags_NoHorizontalScroll ;
-            if (AlwaysInsertMode   ) value |= ImGuiInputTextFlags_AlwaysInsertMode   ;
-            if (ReadOnly           ) value |= ImGuiInputTextFlags_ReadOnly           ;
-            if (Password           ) value |= ImGuiInputTextFlags_Password           ;
-            if (NoUndoRedo         ) value |= ImGuiInputTextFlags_NoUndoRedo         ;
-            if (CharsScientific    ) value |= ImGuiInputTextFlags_CharsScientific    ;
-            if (CallbackResize     ) value |= ImGuiInputTextFlags_CallbackResize     ;
-            if (CharsDecimal       ) value |= ImGuiInputTextFlags_CharsDecimal       ;
-            return value;
-        }
+        InputTextFlags(ImGuiInputTextFlags flags) : flags{flags} {}
+
+        operator ImGuiInputTextFlags () const { return flags; }
     };
 
     static_assert(sizeof(ImGui::InputTextFlags) <= sizeof(int));
 
-    template <size_t LabelSize, size_t BufferSize, typename UserData>
-    bool InputText(const char (&label)[LabelSize], char (&buffer)[BufferSize], ImGui::InputTextFlags flags,
+    // INPUTTEXT VARIANTS
+
+    template <size_t BufferSize, typename UserData>
+    bool InputText(const char *label, char (&buffer)[BufferSize], ImGui::InputTextFlags flags,
         int (*callback)(ImGuiInputTextCallbackData*) = nullptr,
         UserData *user_data = nullptr
     ) {
 
         return ImGui::InputText(label, buffer, BufferSize, (int)flags, callback, user_data);
     }
+
+    // TODO: more overloads, and also for InputTextEx()
 
 } // ns ImGui
