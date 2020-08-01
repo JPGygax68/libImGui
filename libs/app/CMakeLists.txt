@@ -22,10 +22,10 @@ add_library(libImGui::App ALIAS libImGui_App) # mimick exported targets
 
 add_library(libImGui_App_SDL_OpenGL3 STATIC src/sdl_opengl.cpp src/sdl.cpp src/opengl3.cpp)
 find_package(GLEW REQUIRED)
-target_link_libraries(libImGui_App_SDL_OpenGL3 PUBLIC GLEW::glew)
+target_link_libraries(libImGui_App_SDL_OpenGL3 PUBLIC libImGui::App GLEW::glew)
 
 # TODO: macro definition to select OpenGL 3 ?
-target_link_libraries(libImGui_App_SDL_OpenGL3 PRIVATE libImGui_App libImGui_SDL libImGui_OpenGL3) # libImGui::Glue
+target_link_libraries(libImGui_App_SDL_OpenGL3 PUBLIC libImGui_App libImGui_SDL libImGui_OpenGL3) # libImGui::Glue
 set_target_properties(libImGui_App_SDL_OpenGL3 PROPERTIES EXPORT_NAME "App_SDL_OpenGL3")
 install(TARGETS libImGui_App_SDL_OpenGL3 EXPORT libImGui_App_SDL_OpenGL3)
 # TODO? Use nested namespaces (check if libman supports that)

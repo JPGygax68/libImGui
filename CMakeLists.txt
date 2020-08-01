@@ -42,7 +42,7 @@ function(add_dependencies_from_package target package dependencies)
     if (NOT TARGET ${dep_tgt})
       find_package(${package} REQUIRED)
     endif()
-    target_link_libraries(${target} PRIVATE ${dep_tgt})
+    target_link_libraries(${target} PUBLIC ${dep_tgt})
   endforeach()
 endfunction()
 
@@ -86,7 +86,7 @@ add_platform(Win32     win32     "${WIN32}" "cpp" "" "") # TODO: deps
 add_platform(OSX       osx       "${APPLE}" "mm"  "" "") # TODO: deps
 add_platform(glfw      glfw      FALSE      "cpp" "" "") # TODO: deps
 add_platform(Marmalade marmalade FALSE      "cpp" "" "") # TODO: deps
-add_platform(SDL       sdl       FALSE      "cpp" "SDL2" "SDL2::SDL2")
+add_platform(SDL       sdl       FALSE      "cpp" "SDL2" "SDL2::SDL2;SDL2::SDL2main")
 add_platform(Allegro5  allegro5  FALSE      "cpp" "" "") # TODO: deps
 
 # Graphics libs
