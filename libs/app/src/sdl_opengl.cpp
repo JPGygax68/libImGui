@@ -28,3 +28,9 @@ void imgapp_newFrame(void *window)
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame((SDL_Window *)window);
 }
+
+void imgapp_getWindowContentSize(void *window, int *w, int *h)
+{
+    ImGui_ImplSDL2_GetWindowContentSize((SDL_Window*)window, w, h);
+}
+

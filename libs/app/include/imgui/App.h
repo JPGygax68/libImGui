@@ -8,8 +8,10 @@ class App
 {
 public:
 
-    using RenderFunc = std::function<void()>;
+    using RenderFunc = std::function<void(int w, int h, void* window)>;
     using AfterRenderFunc = std::function<void()>;
+
+    struct Size { int w, h; };
 
     virtual ~App();
 
@@ -33,9 +35,10 @@ public:
     const auto& clearColor() const { return clear_color; }
     void clearColor(const ImVec4& color) { clear_color = color; }
 
-    // Queries
+    // Properties
 
     auto dpiScaling() const { return dpi_scaling; }
+    auto defaultWindow() const { return _window; }
 
 private:
 
@@ -45,7 +48,7 @@ private:
 
     ImVec4 clear_color = ImVec4{ 0.45f, 0.55f, 0.60f, 1.00f };
 
-    void *window = nullptr; // a void* should cover the needs of all platform libraries
+    void *_window = nullptr; // a void* should cover the needs of all platform libraries; TODO: support more windows
     void * gl_context = nullptr;
     RenderFunc on_render;
     AfterRenderFunc after_render;
