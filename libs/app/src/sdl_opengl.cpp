@@ -31,6 +31,6 @@ void imgapp_newFrame(void *window)
 
 void imgapp_getWindowContentSize(void *window, int *w, int *h)
 {
-    ImGui_ImplSDL2_GetWindowContentSize((SDL_Window*)window, w, h);
+    SDL_GetWindowSize((SDL_Window*)window, w, h);
 }
 
