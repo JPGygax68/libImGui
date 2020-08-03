@@ -27,7 +27,10 @@ target_include_directories(libImGui_Core
 )
 
 # Make the Dear ImGui headers available using #include <imgui/imgui.h> etc.
-set_target_properties(Core PROPERTIES PUBLIC_HEADER "${root}/imgui.h;${root}/imconfig.h;${root}/imstb_rectpack.h;${root}/imstb_textedit.h;${root}/imstb_truetype.h;${root}/imgui_internal.h")
+set_target_properties(libImGui_Core
+  PROPERTIES
+    PUBLIC_HEADER "${root}/imgui.h;${root}/imconfig.h;${root}/imstb_rectpack.h;${root}/imstb_textedit.h;${root}/imstb_truetype.h;${root}/imgui_internal.h"
+)
 
 add_library(libImGui::Core ALIAS libImGui_Core)
 
@@ -117,4 +120,4 @@ add_subdirectory(libs/app)
 
 # Samples
 
-add_subdirectory(samples EXCLUDE_FROM_ALL)
+add_subdirectory(samples)

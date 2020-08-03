@@ -28,13 +28,15 @@ void App::init()
 {
     static bool init_done = false;
 
-#if __APPLE__
-    // GL 3.2 Core + GLSL 150
-    glsl_version = "#version 150";
-#else
-    // GL 3.0 + GLSL 130
-    glsl_version = "#version 130";
-#endif
+    if (!glsl_version) {
+        #if __APPLE__
+        // GL 3.2 Core + GLSL 150
+        glsl_version = "#version 150";
+        #else
+        // GL 3.0 + GLSL 130
+        glsl_version = "#version 130";
+        #endif
+    }
 
     if (!init_done)
     {
@@ -113,7 +115,7 @@ auto App::addFont(const char* filename, float size, const ImFontConfig* font_cfg
 App::~App()
 {
     // TODO: move to closeDefaultWindow()?
-    imgapp_destroyWindow(_window, gl_context);
+    imgapp_destroyWindow(window, gl_context);
 }
 
 auto App::openDefaultWindow(const char *title) -> App &
@@ -124,7 +126,7 @@ auto App::openDefaultWindow(const char *title) -> App &
     int win_w = display_width * 7 / 8, win_h = display_height * 7 / 8;
 
     auto [win, gl_ctx] = imgapp_openWindow(title, win_w, win_h);
-    _window = win;
+    window = win;
     gl_context = gl_ctx;
 
     imgapp_initGraphicLibrary("#version 150"); // TODO: get rid of GLSL version injection at this point
@@ -134,7 +136,7 @@ auto App::openDefaultWindow(const char *title) -> App &
 
 void App::run()
 {
-    assert(_window != nullptr);
+    assert(window != nullptr);
 
     while (pumpEvents())
     {
@@ -166,15 +168,15 @@ void App::updateAllWindows()
     // last_time = now;
 
     // Start the Dear ImGui frame
-    imgapp_newFrame(_window);
+    imgapp_newFrame(window);
     ImGui::NewFrame();
 
     imgapp_clearFrame(clear_color);
 
     int w, h;
-    imgapp_getWindowContentSize(_window, &w, &h);
+    imgapp_getWindowContentSize(window, &w, &h);
 
-    on_render(w, h, _window);
+    on_render(w, h, window);
 
     ImGui::EndFrame(); // not strictly necessary: ImGui::Render() does it automatically
 
@@ -186,7 +188,7 @@ void App::updateAllWindows()
     if (after_render) after_render();
 
     // Present
-    imgapp_presentFrame(_window);
+    imgapp_presentFrame(window);
 }
 
 auto App::onRender(RenderFunc func) -> App &
