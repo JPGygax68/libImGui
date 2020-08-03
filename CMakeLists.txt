@@ -23,7 +23,7 @@ add_library(Core STATIC
 target_include_directories(Core PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
 
 # Make the Dear ImGui headers available using #include <imgui/imgui.h> etc.
-set_target_properties(Core PROPERTIES PUBLIC_HEADER "${root}/imgui.h;${root}/imconfig.h;${root}/imstb_rectpack.h;${root}/imstb_textedit.h;${root}/imstb_truetype.h")
+set_target_properties(Core PROPERTIES PUBLIC_HEADER "${root}/imgui.h;${root}/imconfig.h;${root}/imstb_rectpack.h;${root}/imstb_textedit.h;${root}/imstb_truetype.h;${root}/imgui_internal.h")
 
 add_library(libImGui::Core ALIAS Core)
 
