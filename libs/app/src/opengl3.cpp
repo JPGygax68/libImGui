@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include <imgui.h>
+#include <imgui/imgui.h>
 
 #include <examples/imgui_impl_opengl3.h>
 

@@ -50,3 +50,4 @@ void imgapp_presentFrame(void *window);
 
 auto imgapp_openWindow(const char *title, int win_w, int win_h) -> WindowHandle;
 void imgapp_destroyWindow(void *window, void *gl_context);
+void imgapp_getWindowContentSize(void* window, int* w, int* h);

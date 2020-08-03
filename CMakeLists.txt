@@ -10,7 +10,7 @@ set(root external/imgui)
 
 # "Core" library: consists of the Dear ImGui code itself
 
-add_library(Core STATIC
+add_library(libImGui_Core STATIC
   ${root}/imgui.cpp
   ${root}/imgui_draw.cpp ${root}/imgui_widgets.cpp
   ${root}/imgui.h ${root}/imconfig.h ${root}/imgui_internal.h
@@ -20,16 +20,19 @@ add_library(Core STATIC
   ${root}/imgui_demo.cpp
 )
 
-target_include_directories(Core PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}> $<INSTALL_INTERFACE:include>)
+target_include_directories(libImGui_Core
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external> $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/imgui>
+    $<INSTALL_INTERFACE:include>
+)
 
 # Make the Dear ImGui headers available using #include <imgui/imgui.h> etc.
 set_target_properties(Core PROPERTIES PUBLIC_HEADER "${root}/imgui.h;${root}/imconfig.h;${root}/imstb_rectpack.h;${root}/imstb_textedit.h;${root}/imstb_truetype.h;${root}/imgui_internal.h")
 
-add_library(libImGui::Core ALIAS Core)
+add_library(libImGui::Core ALIAS libImGui_Core)
 
 # Install library file, headers, and cmake targets file
-install(TARGETS Core EXPORT libImGui_Core COMPONENT Core PUBLIC_HEADER DESTINATION "include/imgui/")
-#install(TARGETS Core PUBLIC_HEADER DESTINATION "include/imgui/")
+install(TARGETS libImGui_Core EXPORT libImGui_Core COMPONENT Core PUBLIC_HEADER DESTINATION "include/imgui/")
 install(EXPORT libImGui_Core NAMESPACE libImGui:: COMPONENT Core DESTINATION "cmake" FILE "libImGui_Core-targets.cmake")
 
 # Dependencies helper function (for platform and graphics libs)
@@ -39,7 +42,7 @@ function(add_dependencies_from_package target package dependencies)
     if (NOT TARGET ${dep_tgt})
       find_package(${package} REQUIRED)
     endif()
-    target_link_libraries(${target} PRIVATE ${dep_tgt})
+    target_link_libraries(${target} PUBLIC ${dep_tgt})
   endforeach()
 endfunction()
 
@@ -54,11 +57,12 @@ function(add_component comp_type comp shortform default_enabled source_ext dep_p
     )
     set_target_properties(${target} PROPERTIES PUBLIC_HEADER "${root}/examples/imgui_impl_${shortform}.h")
     set_target_properties(${target} PROPERTIES EXPORT_NAME ${comp})
-    target_include_directories(${target} PUBLIC 
+    target_include_directories(${target} PUBLIC
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/> $<INSTALL_INTERFACE:include/imgui>
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/examples> $<INSTALL_INTERFACE:include/imgui/examples/>
     )
     add_dependencies_from_package(${target} "${dep_pkg}" "${dep_targets}")
+    add_library(libImGui::${comp} ALIAS libImGui_${comp})
     #install(TARGETS ${target} PUBLIC_HEADER DESTINATION "include/imgui/examples/")
     install(TARGETS ${target} EXPORT ${target} PUBLIC_HEADER DESTINATION "include/imgui/examples/")
     install(EXPORT ${target} NAMESPACE libImGui:: DESTINATION "cmake" FILE "libImGui_${comp}-targets.cmake")
@@ -82,7 +86,7 @@ add_platform(Win32     win32     "${WIN32}" "cpp" "" "") # TODO: deps
 add_platform(OSX       osx       "${APPLE}" "mm"  "" "") # TODO: deps
 add_platform(glfw      glfw      FALSE      "cpp" "" "") # TODO: deps
 add_platform(Marmalade marmalade FALSE      "cpp" "" "") # TODO: deps
-add_platform(SDL       sdl       FALSE      "cpp" "SDL2" "SDL2::SDL2")
+add_platform(SDL       sdl       FALSE      "cpp" "SDL2" "SDL2::SDL2;SDL2::SDL2main")
 add_platform(Allegro5  allegro5  FALSE      "cpp" "" "") # TODO: deps
 
 # Graphics libs
@@ -102,6 +106,10 @@ add_graphiclib(DirectX11 dx11    "${WIN32}" "cpp" "" "")
 if (${WIN32} AND (CMAKE_SIZEOF_VOID_P EQUAL 8))
   add_graphiclib(DirectX12 dx12 "${dx12}" "cpp" "" "")
 endif()
+
+# Extra libraries
+
+add_subdirectory(libs/c++-latest)
 
 # App component
 
