@@ -5,15 +5,13 @@
 // Main code
 int main(int, char **)
 {
-    App::init();
-
     App app;
 
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
 
-    app.openDefaultWindow("libImGuiApp sample").onRender([&]() {
+    app.openDefaultWindow("libImGuiApp sample").onRender([&](int w, int h, void *window) {
 
         // Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         {

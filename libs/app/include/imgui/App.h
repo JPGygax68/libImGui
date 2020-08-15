@@ -38,17 +38,17 @@ public:
     // Properties
 
     auto dpiScaling() const { return dpi_scaling; }
-    auto defaultWindow() const { return _window; }
+    auto defaultWindow() const { return window; }
 
 private:
 
-    const char *glsl_version = "#version 150"; // default
+    const char *glsl_version = nullptr;
 
     float dpi_scaling = 1.0f;
 
     ImVec4 clear_color = ImVec4{ 0.45f, 0.55f, 0.60f, 1.00f };
 
-    void *_window = nullptr; // a void* should cover the needs of all platform libraries; TODO: support more windows
+    void *window = nullptr; // a void* should cover the needs of all platform libraries; TODO: support more windows
     void * gl_context = nullptr;
     RenderFunc on_render;
     AfterRenderFunc after_render;
