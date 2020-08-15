@@ -3,7 +3,7 @@ project (libImGui_App)
 # Application framework built on top of libImGUI (itself a packaging of Dear ImGui)
 
 add_library(libImGui_App STATIC src/App.cpp include/imgui/App.h include/imgui/app_glue.h)
-target_compile_features(libImGui_App PRIVATE cxx_std_17)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_include_directories(libImGui_App PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
 # TODO: install
 # TODO: install public headers
