@@ -1,8 +1,16 @@
 #pragma once
 
+#include <string_view>
 #include <functional>
 
 #include <imgui/imgui.h>
+
+
+struct Window_config {
+    
+    std::string_view top, right, bottom, left;
+};
+
 
 class App
 {
@@ -20,7 +28,7 @@ public:
     auto addFont(const char *filename, float size, const ImFontConfig* font_cfg_template = nullptr, 
         const ImWchar* glyph_ranges = nullptr) -> ImFont*;
 
-    auto openDefaultWindow(const char *title = "libImGui default window") -> App&;
+    auto openDefaultWindow(const char *title = "libImGui default window", const Window_config & = {}) -> App&;
 
     void run();
 
