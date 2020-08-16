@@ -1,15 +1,25 @@
 #pragma once
 
+#include <string_view>
 #include <functional>
 
-#include <imgui.h>
+#include <imgui/imgui.h>
+
+
+struct Window_config {
+    
+    std::string_view top, right, bottom, left;
+};
+
 
 class App
 {
 public:
 
-    using RenderFunc = std::function<void()>;
+    using RenderFunc = std::function<void(int w, int h, void* window)>;
     using AfterRenderFunc = std::function<void()>;
+
+    struct Size { int w, h; };
 
     virtual ~App();
 
@@ -18,7 +28,7 @@ public:
     auto addFont(const char *filename, float size, const ImFontConfig* font_cfg_template = nullptr, 
         const ImWchar* glyph_ranges = nullptr) -> ImFont*;
 
-    auto openDefaultWindow(const char *title = "libImGui default window") -> App&;
+    auto openDefaultWindow(const char *title = "libImGui default window", const Window_config & = {}) -> App&;
 
     void run();
 
@@ -33,19 +43,20 @@ public:
     const auto& clearColor() const { return clear_color; }
     void clearColor(const ImVec4& color) { clear_color = color; }
 
-    // Queries
+    // Properties
 
     auto dpiScaling() const { return dpi_scaling; }
+    auto defaultWindow() const { return window; }
 
 private:
 
-    const char *glsl_version = "#version 150"; // default
+    const char *glsl_version = nullptr;
 
     float dpi_scaling = 1.0f;
 
     ImVec4 clear_color = ImVec4{ 0.45f, 0.55f, 0.60f, 1.00f };
 
-    void *window = nullptr; // a void* should cover the needs of all platform libraries
+    void *window = nullptr; // a void* should cover the needs of all platform libraries; TODO: support more windows
     void * gl_context = nullptr;
     RenderFunc on_render;
     AfterRenderFunc after_render;

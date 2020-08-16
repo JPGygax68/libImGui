@@ -27,7 +27,10 @@ target_include_directories(libImGui_Core
 )
 
 # Make the Dear ImGui headers available using #include <imgui/imgui.h> etc.
-set_target_properties(libImGui_Core PROPERTIES PUBLIC_HEADER "${root}/imgui.h;${root}/imconfig.h;${root}/imstb_rectpack.h;${root}/imstb_textedit.h;${root}/imstb_truetype.h")
+set_target_properties(libImGui_Core
+  PROPERTIES
+    PUBLIC_HEADER "${root}/imgui.h;${root}/imconfig.h;${root}/imstb_rectpack.h;${root}/imstb_textedit.h;${root}/imstb_truetype.h;${root}/imgui_internal.h"
+)
 
 add_library(libImGui::Core ALIAS libImGui_Core)
 
@@ -42,7 +45,7 @@ function(add_dependencies_from_package target package dependencies)
     if (NOT TARGET ${dep_tgt})
       find_package(${package} REQUIRED)
     endif()
-    target_link_libraries(${target} PRIVATE ${dep_tgt})
+    target_link_libraries(${target} PUBLIC ${dep_tgt})
   endforeach()
 endfunction()
 
@@ -86,7 +89,7 @@ add_platform(Win32     win32     "${WIN32}" "cpp" "" "") # TODO: deps
 add_platform(OSX       osx       "${APPLE}" "mm"  "" "") # TODO: deps
 add_platform(glfw      glfw      FALSE      "cpp" "" "") # TODO: deps
 add_platform(Marmalade marmalade FALSE      "cpp" "" "") # TODO: deps
-add_platform(SDL       sdl       FALSE      "cpp" "SDL2" "SDL2::SDL2")
+add_platform(SDL       sdl       FALSE      "cpp" "SDL2" "SDL2::SDL2;SDL2::SDL2main")
 add_platform(Allegro5  allegro5  FALSE      "cpp" "" "") # TODO: deps
 
 # Graphics libs
@@ -117,4 +120,4 @@ add_subdirectory(libs/app)
 
 # Samples
 
-add_subdirectory(samples EXCLUDE_FROM_ALL)
+add_subdirectory(samples)

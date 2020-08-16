@@ -60,8 +60,8 @@ auto imgapp_getMainDisplayExtents() -> Extents
 
 void imgapp_destroyWindow(void *window, void *gl_context)
 {
-    SDL_GL_DeleteContext(gl_context);
-    SDL_DestroyWindow((SDL_Window *)window);
+    if (gl_context) SDL_GL_DeleteContext(gl_context);
+    if (window) SDL_DestroyWindow((SDL_Window *)window);
     SDL_Quit(); // TODO: support multiple windows!
 }
 

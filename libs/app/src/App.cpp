@@ -5,6 +5,7 @@
 #endif
 #include <stdio.h>
 #include <chrono>
+#include <string>
 #include <cassert>
 #include <filesystem>
 
@@ -17,9 +18,15 @@
 using myclock_t = std::chrono::high_resolution_clock;
 using timepoint_t = std::chrono::time_point<myclock_t>;
 
+
 // PRIVATE VARIABLES
 
 static auto last_time = timepoint_t();
+
+
+// PRIVATE HELPER ROUTINES & FUNCTIONS
+
+inline auto stof(std::string_view sv) {  return std::stof(std::string{sv}); }
 
 
 // App class implementation
@@ -28,13 +35,15 @@ void App::init()
 {
     static bool init_done = false;
 
-#if __APPLE__
-    // GL 3.2 Core + GLSL 150
-    glsl_version = "#version 150";
-#else
-    // GL 3.0 + GLSL 130
-    glsl_version = "#version 130";
-#endif
+    if (!glsl_version) {
+        #if __APPLE__
+        // GL 3.2 Core + GLSL 150
+        glsl_version = "#version 150";
+        #else
+        // GL 3.0 + GLSL 130
+        glsl_version = "#version 130";
+        #endif
+    }
 
     if (!init_done)
     {
@@ -116,16 +125,27 @@ App::~App()
     imgapp_destroyWindow(window, gl_context);
 }
 
-auto App::openDefaultWindow(const char *title) -> App &
+auto App::openDefaultWindow(const char *title, const Window_config& wc) -> App &
 {
     init();
 
     auto [display_width, display_height] = imgapp_getMainDisplayExtents();
-    int win_w = display_width * 7 / 8, win_h = display_height * 7 / 8;
 
-    auto [win, gl_ctx] = imgapp_openWindow(title, win_w, win_h);
-    window = win;
-    gl_context = gl_ctx;
+    if (wc.left.empty() && wc.right.empty() && wc.top.empty() && wc.bottom.empty()) {
+        int win_w = display_width * 7 / 8, win_h = display_height * 7 / 8;
+        auto [win, gl_ctx] = imgapp_openWindow(title, win_w, win_h);
+        window = win;
+        gl_context = gl_ctx;
+    }
+    else {
+        int x1 = wc.left  .ends_with("%") ? stof(wc.left  ) * display_width  / 100 : stof(wc.left  );
+        int y1 = wc.top   .ends_with("%") ? stof(wc.top   ) * display_height / 100 : stof(wc.top   );
+        int x2 = round( display_width  - (wc.right .ends_with("%") ? stof(wc.right ) * display_width  / 100 : stof(wc.right )) );
+        int y2 = round( display_height - (wc.bottom.ends_with("%") ? stof(wc.bottom) * display_height / 100 : stof(wc.bottom)) );
+        auto [win, gl_ctx] = imgapp_openWindowExt(title, x1, y1, x2, y2);
+        window = win;
+        gl_context = gl_ctx;
+    }
 
     imgapp_initGraphicLibrary("#version 150"); // TODO: get rid of GLSL version injection at this point
     
@@ -169,17 +189,21 @@ void App::updateAllWindows()
     imgapp_newFrame(window);
     ImGui::NewFrame();
 
-    on_render();
+    imgapp_clearFrame(clear_color);
+
+    int w, h;
+    imgapp_getWindowContentSize(window, &w, &h);
+
+    on_render(w, h, window);
 
     ImGui::EndFrame(); // not strictly necessary: ImGui::Render() does it automatically
 
     // Rendering
     ImGui::Render();
 
-    imgapp_clearFrame(clear_color);
     imgapp_renderGui();
 
-    after_render();
+    if (after_render) after_render();
 
     // Present
     imgapp_presentFrame(window);
