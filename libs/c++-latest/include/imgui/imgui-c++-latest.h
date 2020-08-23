@@ -4,6 +4,10 @@
 #include <string>
 #include <functional>
 #include <limits>
+#include <optional>
+// #include <cstdarg>
+
+#include <fmt/core.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -54,25 +58,81 @@ namespace ImGui {
     // Convert several data types to either a label or an ID
 
     template <typename T>
-    auto to_label(T value) { return std::to_string(value); }
+    inline auto to_label(T value) { return std::to_string(value); }
 
     template <>
-    auto to_label(const char *label) { return label; }
+    inline auto to_label(const char *label) { return label; }
 
 
-    // INPUTTEXT VARIANTS
+    // Text() variants ------------------------------------
 
-    template <size_t BufferSize, typename UserData>
-    bool InputText(const char *label, char *buffer, size_t bufferSize, ImGui::InputTextFlags flags = 0,
+    template <typename ...Args>
+    inline void FormattedText(std::string_view tmpl, Args... args) {
+
+        auto text = fmt::format(tmpl, args...);
+
+        ImGui::TextUnformatted(text.data(), text.data() + text.size());
+    }
+
+
+    // Button variants ------------------------------------
+
+    struct ButtonOptions {
+
+        std::optional<ImVec2>                   size;
+        std::optional<std::string_view>         width;
+        std::optional<std::string_view>         height;
+
+        auto get_extents() -> ImVec2 {
+
+            if (size) {
+                return *size;
+            }
+            else {
+                ImVec2 extents = { 0, 0 };
+                if (width ) extents.x = parse_length(*width);
+                if (height) extents.y = parse_length(*height);
+                return extents;
+            }
+        }
+
+    private:
+
+        int parse_length(std::string_view spec) {
+
+            if (spec.ends_with("em")) {
+                auto value = std::stoi(std::string{spec});
+                return round( GetFontSize() * value );
+            }
+            else
+                return std::stoi(std::string{spec});
+        }
+    };
+
+    inline bool Button(std::string_view label_, ButtonOptions options = {}) {
+        
+        std::string label{label_};
+
+        return Button(label.c_str(), options.get_extents() );
+    }
+
+    // InputText variants ---------------------------------
+
+    /* Using templatized user data type
+    */
+    template <typename UserData>
+    inline bool InputText(const char *label, char *buffer, size_t b_size, ImGui::InputTextFlags flags = 0,
         int (*callback)(ImGuiInputTextCallbackData*) = nullptr,
         UserData* user_data = nullptr
     ) {
 
-        return ImGui::InputText(label, buffer, BufferSize, (int)flags, callback, user_data);
+        return ImGui::InputText(label, buffer, b_size, (int)flags, callback, user_data);
     }
 
+    /* Using templatized user data; label specified as a std::string
+     */
     template <typename UserData>
-    bool InputText(const std::string& label, char* buffer, size_t b_size, ImGui::InputTextFlags flags = 0,
+    inline bool InputText(const std::string& label, char* buffer, size_t b_size, ImGui::InputTextFlags flags = 0,
         int (*callback)(ImGuiInputTextCallbackData*) = nullptr,
         UserData* user_data = nullptr
     ) {
@@ -80,23 +140,27 @@ namespace ImGui {
         return ImGui::InputText(label.c_str(), buffer, b_size, (int)flags, callback, user_data);
     }
 
+    /* Templatized userdata and label/ID; C array buffer
+    */
     template <typename Label, size_t BufferSize, typename UserData>
-    bool InputText(Label label, char (&buffer)[BufferSize], ImGui::InputTextFlags flags = 0,
+    inline bool InputText(Label label, char (&buffer)[BufferSize], ImGui::InputTextFlags flags = 0,
         int (*callback)(ImGuiInputTextCallbackData*) = nullptr,
         UserData *user_data = nullptr
     ) {
-    
-        return ImGui::InputText(label, buffer, BufferSize, (int)flags, callback, user_data);
+
+        return ImGui::InputText(to_label(label), buffer, BufferSize, (int)flags, callback, user_data);
     }
 
-    template <typename ID, typename UserData = void>
-    bool InputText(ID id, std::string& text, ImGui::InputTextFlags flags = 0,
+    /* Templatized userdata and label/ID, std::string as the text buffer
+    */
+    template <typename Label, typename UserData = void>
+    inline bool InputText(Label label, std::string& text, ImGui::InputTextFlags flags = 0,
         int (*callback)(ImGuiInputTextCallbackData*) = nullptr,
         UserData* user_data = nullptr
     ) {
         std::vector<char> buffer( std::max(text.capacity(), (size_t)512) );
         strcpy_s(buffer.data(), buffer.size(), text.c_str());
-        if (ImGui::InputText(to_label(id), buffer.data(), buffer.size(), (int)flags, callback, user_data)) {
+        if (ImGui::InputText(to_label(label), buffer.data(), buffer.size(), (int)flags, callback, user_data)) {
             text = buffer.data();
             return true;
         }
@@ -104,16 +168,18 @@ namespace ImGui {
             return false;
     }
 
+    // TODO: a variant that takes a struct containing options (can be partially initialized)
+
     // TODO: more overloads, and also for InputTextEx()
 
     // TODO: move into separate "utils" module!
 
-    void BringItemIntoView() {
+    inline void BringItemIntoView() {
 
         ScrollToBringRectIntoView(GetCurrentWindow(), { GetItemRectMin(), GetItemRectMax() });
     }
 
-    void ScrollHereUnlessVisible(float position = 0.5f) {
+    inline void ScrollHereUnlessVisible(float position = 0.5f) {
 
         if (!ImGui::IsItemVisible()) {
             ImGui::SetScrollHereY(position);

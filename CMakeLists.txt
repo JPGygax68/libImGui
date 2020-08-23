@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 
+if (NOT TARGET fmt)
+  add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
+endif()
+
+
 project(libImGui)
 
 # Add sources and headers from Dear ImGUI (injected into libImGui as a git submodule)
