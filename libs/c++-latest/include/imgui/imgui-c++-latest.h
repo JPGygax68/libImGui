@@ -11,6 +11,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
 
 
 /** The c++-latest module of libImGui is intended for wrappers and other conveniences that make
@@ -110,7 +111,7 @@ namespace ImGui {
     };
 
     inline bool Button(std::string_view label_, ButtonOptions options = {}) {
-        
+
         std::string label{label_};
 
         return Button(label.c_str(), options.get_extents() );
@@ -158,14 +159,7 @@ namespace ImGui {
         int (*callback)(ImGuiInputTextCallbackData*) = nullptr,
         UserData* user_data = nullptr
     ) {
-        std::vector<char> buffer( std::max(text.capacity(), (size_t)512) );
-        strcpy_s(buffer.data(), buffer.size(), text.c_str());
-        if (ImGui::InputText(to_label(label), buffer.data(), buffer.size(), (int)flags, callback, user_data)) {
-            text = buffer.data();
-            return true;
-        }
-        else
-            return false;
+        return ImGui::InputText(to_label(label), text, (int)flags, callback, user_data);
     }
 
     // TODO: a variant that takes a struct containing options (can be partially initialized)
