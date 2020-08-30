@@ -104,7 +104,7 @@ function(add_graphiclib lib shortform default_enabled source_ext dep_pkg dep_tar
 endfunction()
 
 add_graphiclib(OpenGL2   opengl2 TRUE       "cpp" "" "") # TODO: OpenGL bindings
-add_graphiclib(OpenGL3   opengl3 TRUE       "cpp" "" "") # TODO: OpenGL bindings
+add_graphiclib(OpenGL3   opengl3 TRUE       "cpp" "GLEW" "GLEW::GLEW") # TODO: OpenGL bindings
 add_graphiclib(Vulkan    vulkan  FALSE      "cpp" "" "") # TODO: autodetect presence
 add_graphiclib(Metal     metal   FALSE      "mm"  "" "")
 add_graphiclib(DirectX9  dx9     "${WIN32}" "cpp" "" "")
