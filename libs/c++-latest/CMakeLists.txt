@@ -15,7 +15,7 @@ target_include_directories(
     $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC libImGui_Core fmt)
+target_link_libraries(${PROJECT_NAME} PUBLIC libImGui_Core fmt::fmt)
 
 add_library(libImGui::c++-latest ALIAS libImGui_c++-latest)
 

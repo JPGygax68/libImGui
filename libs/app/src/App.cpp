@@ -138,10 +138,10 @@ auto App::openDefaultWindow(const char *title, const Window_config& wc) -> App &
         gl_context = gl_ctx;
     }
     else {
-        int x1 = wc.left  .ends_with("%") ? stof(wc.left  ) * display_width  / 100 : stof(wc.left  );
-        int y1 = wc.top   .ends_with("%") ? stof(wc.top   ) * display_height / 100 : stof(wc.top   );
-        int x2 = round( display_width  - (wc.right .ends_with("%") ? stof(wc.right ) * display_width  / 100 : stof(wc.right )) );
-        int y2 = round( display_height - (wc.bottom.ends_with("%") ? stof(wc.bottom) * display_height / 100 : stof(wc.bottom)) );
+        int x1 = (int) (wc.left  .ends_with("%") ? stof(wc.left  ) * display_width  / 100 : stof(wc.left  )                            );
+        int y1 = (int) (wc.top   .ends_with("%") ? stof(wc.top   ) * display_height / 100 : stof(wc.top   )                            );
+        int x2 = (int) (round( display_width  - (wc.right .ends_with("%") ? stof(wc.right ) * display_width  / 100 : stof(wc.right )) ));
+        int y2 = (int) (round( display_height - (wc.bottom.ends_with("%") ? stof(wc.bottom) * display_height / 100 : stof(wc.bottom)) ));
         auto [win, gl_ctx] = imgapp_openWindowExt(title, x1, y1, x2, y2);
         window = win;
         gl_context = gl_ctx;

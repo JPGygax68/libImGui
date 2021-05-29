@@ -3,7 +3,7 @@
 #include <string_view>
 #include <functional>
 
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 
 struct Window_config {

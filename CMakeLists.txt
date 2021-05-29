@@ -22,13 +22,14 @@ add_library(libImGui_Core STATIC
   ${root}/imstb_rectpack.h ${root}/imstb_textedit.h ${root}/imstb_truetype.h
   # The following are considered part of "Core" b/c they're not platform or GL dependent
   ${root}/misc/cpp/imgui_stdlib.cpp
+  ${root}/imgui_tables.cpp
   ${root}/imgui_demo.cpp
 )
 
 target_include_directories(libImGui_Core
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external> $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/imgui>
-    $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:include/imgui>
 )
 
 # Make the Dear ImGui headers available using #include <imgui/imgui.h> etc.
@@ -60,19 +61,19 @@ function(add_component comp_type comp shortform default_enabled source_ext dep_p
   if (${comp_type_uc}_LIBRARY_${comp})
     set(target libImGui_${comp})
     add_library(${target} STATIC
-      ${root}/examples/imgui_impl_${shortform}.${source_ext}
-      ${root}/examples/imgui_impl_${shortform}.h
+      ${root}/backends/imgui_impl_${shortform}.${source_ext}
+      ${root}/backends/imgui_impl_${shortform}.h
     )
-    set_target_properties(${target} PROPERTIES PUBLIC_HEADER "${root}/examples/imgui_impl_${shortform}.h")
+    set_target_properties(${target} PROPERTIES PUBLIC_HEADER "${root}/backends/imgui_impl_${shortform}.h")
     set_target_properties(${target} PROPERTIES EXPORT_NAME ${comp})
     target_include_directories(${target} PUBLIC
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/> $<INSTALL_INTERFACE:include/imgui>
-      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/examples> $<INSTALL_INTERFACE:include/imgui/examples/>
+      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${root}/backends> $<INSTALL_INTERFACE:include/imgui/backends/>
     )
     add_dependencies_from_package(${target} "${dep_pkg}" "${dep_targets}")
     add_library(libImGui::${comp} ALIAS libImGui_${comp})
-    #install(TARGETS ${target} PUBLIC_HEADER DESTINATION "include/imgui/examples/")
-    install(TARGETS ${target} EXPORT ${target} PUBLIC_HEADER DESTINATION "include/imgui/examples/")
+    #install(TARGETS ${target} PUBLIC_HEADER DESTINATION "include/imgui/backends/")
+    install(TARGETS ${target} EXPORT ${target} PUBLIC_HEADER DESTINATION "include/imgui/backends/")
     install(EXPORT ${target} NAMESPACE libImGui:: DESTINATION "cmake" FILE "libImGui_${comp}-targets.cmake")
     install(CODE "\
       file(WRITE \"${CMAKE_CURRENT_BINARY_DIR}/libImGui_${comp}-config.cmake\"\n\
